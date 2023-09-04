@@ -1,5 +1,6 @@
-import pytest
 from dataclasses import dataclass, field
+
+import pytest
 
 from autocoder import json_schema
 
