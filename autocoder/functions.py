@@ -1,6 +1,5 @@
 """Generating JSON schema for functions and classes"""
 
-import ast
 import inspect
 import json
 import logging
