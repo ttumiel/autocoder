@@ -5,7 +5,8 @@ import json
 import logging
 import traceback
 from collections import OrderedDict
-from dataclasses import dataclass, field
+from contextlib import contextmanager
+from dataclasses import dataclass, field, is_dataclass
 from functools import partial
 from typing import Any, Callable, Dict, Optional
 
@@ -141,12 +142,20 @@ def schema_to_type(function: Callable, arguments: Dict[str, Any]) -> (list, dict
     return bound_arguments.args, bound_arguments.kwargs
 
 
+@contextmanager
+def function_call_error(error: str):
+    try:
+        yield
+    except Exception as e:
+        exc = traceback.format_exc()
+        logger.error("Function Call Exception:\n" + exc)
+        if error:
+            raise FunctionCallError(error)
+
+
 def function_call(
-    name: str,
-    arguments: str,
-    functions: Dict[str, Callable],
-    validate: bool = True,
-):
+    name: str, arguments: str, functions: Dict[str, Callable], validate: bool = True
+) -> str:
     """Calls a function by name with a dictionary of arguments.
 
     Examples:
@@ -160,34 +169,25 @@ def function_call(
     Raises:
         FunctionCallError: If the function call fails.
     """
-    if name not in functions:
-        raise FunctionCallError(f"Function {name} not found.")
-
-    function = functions[name]
+    with function_call_error(f"Function {name} not found."):
+        function = functions[name]
 
     if validate:
         function = validate_call(function)
 
-    try:
+    with function_call_error("Arguments are not valid JSON."):
         arguments = json.loads(arguments)
-    except:
-        raise FunctionCallError("Arguments are not valid JSON.")
 
-    try:
+    with function_call_error("Arguments do not match function signature."):
         args, kwargs = schema_to_type(function, arguments)
-    except:
-        raise FunctionCallError("Arguments do not match function signature.")
 
-    try:
+    with function_call_error("Function call failed."):
         result = function(*args, **kwargs)
-    except Exception as e:
-        logging.error(traceback.format_exc())  # Move to contextmanager
-        raise FunctionCallError("Function call failed: " + str(e))
 
     try:
         result = json.dumps(result)
     except:
         logging.warning("Function result is not JSON serializable.")
-        result = {"result": str(result)}
+        result = json.dumps({"result": str(result)})
 
     return result
