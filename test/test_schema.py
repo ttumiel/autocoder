@@ -50,42 +50,35 @@ class NestedClass:
 
 
 @pytest.mark.parametrize(
-    "function, expected",
+    "function, parse_description, expected",
     [
         (
             bare_function,
+            True,
             {
                 "name": "bare_function",
                 "parameters": {
                     "type": "object",
                     "required": ["arg1", "arg2"],
-                    "properties": {
-                        "arg1": {},
-                        "arg2": {},
-                    },
+                    "properties": {"arg1": {}, "arg2": {}},
                 },
             },
         ),
         (
             function_with_types,
+            True,
             {
                 "name": "function_with_types",
                 "parameters": {
                     "type": "object",
                     "required": ["arg1", "arg2"],
-                    "properties": {
-                        "arg1": {
-                            "type": "integer",
-                        },
-                        "arg2": {
-                            "type": "string",
-                        },
-                    },
+                    "properties": {"arg1": {"type": "integer"}, "arg2": {"type": "string"}},
                 },
             },
         ),
         (
             function_with_docstring,
+            True,
             {
                 "name": "function_with_docstring",
                 "description": "Tests for equivalence",
@@ -93,20 +86,15 @@ class NestedClass:
                     "type": "object",
                     "required": ["arg1", "arg2"],
                     "properties": {
-                        "arg1": {
-                            "type": "integer",
-                            "description": "First argument",
-                        },
-                        "arg2": {
-                            "type": "string",
-                            "description": "Second argument",
-                        },
+                        "arg1": {"type": "integer", "description": "First argument"},
+                        "arg2": {"type": "string", "description": "Second argument"},
                     },
                 },
             },
         ),
         (
             function_with_docstring_and_types,
+            True,
             {
                 "name": "function_with_docstring_and_types",
                 "description": "Tests for equivalence",
@@ -114,20 +102,15 @@ class NestedClass:
                     "type": "object",
                     "required": ["arg1", "arg2"],
                     "properties": {
-                        "arg1": {
-                            "type": "integer",
-                            "description": "First argument",
-                        },
-                        "arg2": {
-                            "type": "string",
-                            "description": "Second argument",
-                        },
+                        "arg1": {"type": "integer", "description": "First argument"},
+                        "arg2": {"type": "string", "description": "Second argument"},
                     },
                 },
             },
         ),
         (
             SimpleClass,
+            True,
             {
                 "name": "SimpleClass",
                 "description": "SimpleClass(a: int, b: str, c: bool = False)",
@@ -135,14 +118,30 @@ class NestedClass:
                     "type": "object",
                     "required": ["a", "b"],
                     "properties": {
-                        "a": {
-                            "type": "integer",
-                        },
+                        "a": {"type": "integer"},
+                        "b": {"type": "string"},
+                        "c": {"type": "boolean"},
+                    },
+                },
+            },
+        ),
+        (
+            NestedClass,
+            False,
+            {
+                "name": "NestedClass",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "a": {"type": "integer"},
                         "b": {
-                            "type": "string",
-                        },
-                        "c": {
-                            "type": "boolean",
+                            "type": "object",
+                            "properties": {
+                                "a": {"type": "integer"},
+                                "b": {"type": "string"},
+                                "c": {"type": "boolean"},
+                            },
+                            "required": ["a", "b"],
                         },
                     },
                 },
@@ -150,5 +149,5 @@ class NestedClass:
         ),
     ],
 )
-def test_json_schema(function, expected):
-    assert json_schema(function).json == expected
+def test_json_schema(function, parse_description, expected):
+    assert json_schema(function, use_param_descriptions=parse_description).json == expected

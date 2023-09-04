@@ -70,7 +70,11 @@ def parse_function_params(function: Callable, use_param_descriptions=True) -> di
         doc_param = docstring_params.get(name, Parameter(name))
 
         # Get the JSON type
-        annotation = sig_param.annotation if sig_param.annotation is not inspect._empty else doc_param.annotation
+        annotation = (
+            sig_param.annotation
+            if sig_param.annotation is not inspect._empty
+            else doc_param.annotation
+        )
         schema["properties"][name] = type_to_schema(annotation)
 
         # Check if required
