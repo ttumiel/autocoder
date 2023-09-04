@@ -8,7 +8,7 @@ from collections import OrderedDict
 from contextlib import contextmanager
 from dataclasses import dataclass, field, is_dataclass
 from functools import partial
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, Optional, Set
 
 from docstring_parser import Docstring, parse
 from pydantic import BaseModel, TypeAdapter, validate_call
@@ -194,14 +194,14 @@ def function_call(
 
 
 def collect_functions(
-    scope: dict,
-    include_functions=True,
-    include_classes=True,
-    include_dataclasses=True,
-    collect_imports=False,
-    whitelist=None,
-    blacklist=None,
-    add_schema=False,
+    scope: Dict[str, Any],
+    include_functions: bool = True,
+    include_classes: bool = True,
+    include_dataclasses: bool = True,
+    collect_imports: bool = False,
+    whitelist: Optional[Set[str]] = None,
+    blacklist: Optional[Set[str]] = None,
+    add_schema: bool = False,
 ):
     """
     Collects functions, classes, and dataclasses from a given scope.
