@@ -212,8 +212,8 @@ def collect_functions(
         include_classes (bool, optional): Whether to include classes. Defaults to True.
         include_dataclasses (bool, optional): Whether to include dataclasses. Defaults to True.
         collect_imports (bool, optional): Whether to include imported functions/classes. Defaults to False.
-        whitelist (list, optional): List of names to explicitly include. Defaults to None.
-        blacklist (list, optional): List of names to explicitly exclude. Defaults to None.
+        whitelist (set, optional): Set of names to explicitly include. Defaults to None.
+        blacklist (set, optional): Set of names to explicitly exclude. Defaults to None.
         add_schema (bool, optional): Whether to add a JSON schema for each collected item. Defaults to False.
 
     Returns:
