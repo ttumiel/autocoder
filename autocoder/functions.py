@@ -5,6 +5,7 @@ import logging
 import traceback
 from collections import OrderedDict
 from dataclasses import dataclass, field
+from functools import partial
 from typing import Any, Callable, Dict, Optional
 
 from docstring_parser import Docstring, parse
@@ -40,11 +41,11 @@ def docstring_to_params(docstring: Docstring) -> Dict[str, Parameter]:
     return params
 
 
-def isbuiltin(py_type) -> bool:
+def isbuiltin(py_type: type) -> bool:
     return getattr(py_type, "__module__", None) == "builtins"
 
 
-def type_to_schema(py_type) -> dict:
+def type_to_schema(py_type: type) -> Dict[str, str]:
     "Convert python types to json schemas."
     if py_type is inspect._empty:
         return {}
@@ -58,7 +59,7 @@ def type_to_schema(py_type) -> dict:
     return TypeAdapter(py_type).json_schema()
 
 
-def parse_function_params(function: Callable, use_param_descriptions=True) -> dict:
+def parse_function_params(function: Callable, descriptions: bool = True) -> dict:
     "Generate a json schema of a function's parameters."
     schema = {}
     signature = inspect.signature(function)
@@ -84,33 +85,14 @@ def parse_function_params(function: Callable, use_param_descriptions=True) -> di
             schema["required"].append(name)
 
         # Include the description
-        if use_param_descriptions and doc_param.description:
+        if descriptions and doc_param.description:
             schema["properties"][name]["description"] = doc_param.description
 
     return schema
 
 
-def schema_to_type(function, arguments) -> (list, dict):
-    "Convert json objects to python function arguments."
-    signature = inspect.signature(function)
-    for name, parameter in signature.parameters.items():
-        if name in arguments:
-            if (
-                not isbuiltin(parameter.annotation)
-                and inspect.isclass(parameter.annotation)
-                or inspect.isfunction(parameter.annotation)
-            ):
-                arguments[name] = parameter.annotation(**arguments[name])
-
-    # TODO: recursive call for nested objects
-
-    bound_arguments = signature.bind(**arguments)
-    bound_arguments.apply_defaults()
-    return bound_arguments.args, bound_arguments.kwargs
-
-
-def json_schema(function=None, *, use_param_descriptions=True):
-    """Extracts the schema of a function and adds a .json attribute.
+def json_schema(function: Callable = None, *, descriptions: bool = True):
+    """Extracts the schema of a function into the .json attribute.
 
     Examples:
         ```
