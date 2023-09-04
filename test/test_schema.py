@@ -1,7 +1,7 @@
 import pytest
 from dataclasses import dataclass, field
 
-from autocoder.functions import json_schema
+from autocoder import json_schema
 
 
 def bare_function(arg1, arg2):
@@ -150,4 +150,4 @@ class NestedClass:
     ],
 )
 def test_json_schema(function, parse_description, expected):
-    assert json_schema(function, use_param_descriptions=parse_description).json == expected
+    assert json_schema(function, descriptions=parse_description).json == expected
