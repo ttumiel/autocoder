@@ -15,15 +15,11 @@ pip install -e .
 
 ### Quick Start
 
-#### Import the library
-
-```python
-from autocoder.functions import json_schema
-```
-
 #### Annotate your function with `@json_schema`
 
 ```python
+from autocoder import json_schema
+
 @json_schema
 def my_function(arg1: int, arg2: str) -> bool:
     """This is a sample function."""
@@ -45,15 +41,15 @@ print(my_function.json)
 
 #### Using Custom Classes
 
-`json_schema` works with classes or dataclasses too:
+`json_schema` works with classes or dataclasses too. Set `descriptions=False` to not generate object descriptions from docstrings.
 
 ```python
-@json_schema
+@json_schema(descriptions=False)
 @dataclass
 class Data:
     a: int = 0
 
-{'description': 'Data(a: int = 0)',
- 'name': 'Data',
- 'parameters': {'properties': {'a': {'type': 'integer'}}, 'type': 'object'}}
+print(Data.json)
+{'name': 'Data',
+ 'parameters': {'type': 'object', 'properties': {'a': {'type': 'integer'}}}}
 ```
