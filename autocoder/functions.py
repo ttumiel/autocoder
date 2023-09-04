@@ -127,3 +127,75 @@ def json_schema(function: Callable = None, *, descriptions: bool = True):
 
     function.json = schema
     return function
+
+
+def schema_to_type(function: Callable, arguments: Dict[str, Any]) -> (list, dict):
+    "Convert json objects to python function arguments."
+    signature = inspect.signature(function)
+    for name, parameter in signature.parameters.items():
+        if name in arguments:
+            if (
+                not isbuiltin(parameter.annotation)
+                and inspect.isclass(parameter.annotation)
+                or inspect.isfunction(parameter.annotation)
+            ):
+                arguments[name] = parameter.annotation(**arguments[name])
+
+    # TODO: recursive call for nested objects
+
+    bound_arguments = signature.bind(**arguments)
+    bound_arguments.apply_defaults()
+    return bound_arguments.args, bound_arguments.kwargs
+
+
+def function_call(
+    name: str,
+    arguments: str,
+    variables: Optional[Dict[str, Callable]] = None,
+    validate: bool = True,
+):
+    """Calls a function by name with a dictionary of arguments.
+
+    Examples:
+        ```
+        def test(a: int) -> bool:
+            return a > 0
+
+        function_call("test", {"a": 1}) == True
+        ```
+
+    Raises:
+        FunctionCallError: If the function call fails.
+    """
+    global_vars = variables or globals()
+    if name not in global_vars:
+        raise FunctionCallError(f"Function {name} not found.")
+
+    function = global_vars[name]
+
+    if validate:
+        function = validate_call(function)
+
+    try:
+        arguments = json.loads(arguments)
+    except:
+        raise FunctionCallError("Arguments are not valid JSON.")
+
+    try:
+        args, kwargs = schema_to_type(function, arguments)
+    except:
+        raise FunctionCallError("Arguments do not match function signature.")
+
+    try:
+        result = function(*args, **kwargs)
+    except Exception as e:
+        logging.error(traceback.format_exc())  # Move to contextmanager
+        raise FunctionCallError("Function call failed: " + str(e))
+
+    try:
+        result = json.dumps(result)
+    except:
+        logging.warning("Function result is not JSON serializable.")
+        result = {"result": str(result)}
+
+    return result
