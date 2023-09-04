@@ -144,7 +144,7 @@ def schema_to_type(function: Callable, arguments: Dict[str, Any]) -> (list, dict
 def function_call(
     name: str,
     arguments: str,
-    variables: Optional[Dict[str, Callable]] = None,
+    functions: Dict[str, Callable],
     validate: bool = True,
 ):
     """Calls a function by name with a dictionary of arguments.
@@ -160,11 +160,10 @@ def function_call(
     Raises:
         FunctionCallError: If the function call fails.
     """
-    global_vars = variables or globals()
-    if name not in global_vars:
+    if name not in functions:
         raise FunctionCallError(f"Function {name} not found.")
 
-    function = global_vars[name]
+    function = functions[name]
 
     if validate:
         function = validate_call(function)
