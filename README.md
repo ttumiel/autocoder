@@ -53,3 +53,25 @@ print(Data.json)
 {'name': 'Data',
  'parameters': {'type': 'object', 'properties': {'a': {'type': 'integer'}}}}
 ```
+
+#### Calling Functions with JSON Arguments
+
+`function_call` provides additional functionality for calling functions with JSON arguments. It automatically converts JSON arguments to Python objects and returns the result as JSON. It validates the JSON, raising `FunctionCallError` if something is unexpected.
+
+```python
+import json
+from autocoder import function_call, collect_functions
+
+def plusplus(x: float, y: float) -> float:
+    "Add two floats."
+    return x + y
+
+functions = collect_functions(globals(), collect_imports=False)
+arguments = json.dumps({"x": 1.0, "y": 2.0})
+result = function_call("plusplus", arguments, functions)
+print(result) # 3.0
+
+arguments = json.dumps({"x": "a", "y": 2.0})
+result = function_call("plusplus", arguments, functions)
+# FunctionCallError: Function call failed.
+```
