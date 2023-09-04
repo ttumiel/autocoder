@@ -94,3 +94,19 @@ def test_add_schema():
     assert "fn" in functions
     assert len(functions) == 1
     assert hasattr(functions["fn"], "json")
+
+
+@dataclass
+class Foo:
+    pass
+
+
+def foo():
+    pass
+
+
+def test_global_collection():
+    fn = lambda: None
+    functions = collect_functions(globals())
+    assert "Foo" in functions
+    assert "foo" in functions
