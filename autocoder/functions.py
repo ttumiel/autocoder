@@ -1,3 +1,5 @@
+"""Generating JSON schema for functions and classes"""
+
 import ast
 import inspect
 import json
@@ -16,9 +18,6 @@ logger = logging.getLogger(__name__)
 
 class FunctionCallError(Exception):
     pass
-
-
-### Generating JSON schema for functions and dataclasses ###
 
 
 @dataclass
@@ -103,16 +102,11 @@ def json_schema(function: Callable = None, *, descriptions: bool = True):
         test.json == {
             "name": "test",
             "description": "description",
-            "parameters": {
-                "required": ["a"],
-                "a": {
-                    "type": "int",
-                }
-            }
+            "parameters": {"required": ["a"], "a": {"type": "int"}}
         }
         ```
     """
-    if function == None:
+    if function is None:
         return partial(json_schema, descriptions=descriptions)
 
     schema = {}
