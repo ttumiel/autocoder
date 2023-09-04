@@ -130,15 +130,18 @@ def json_schema(function=None, *, use_param_descriptions=True):
         }
         ```
     """
+    if function == None:
+        return partial(json_schema, descriptions=descriptions)
+
     schema = {}
     schema["name"] = function.__name__
 
     docstring = parse(inspect.getdoc(function))
     desc = docstring.long_description or docstring.short_description
-    if desc and use_param_descriptions:
+    if desc and descriptions:
         schema["description"] = desc
 
-    schema["parameters"] = parse_function_params(function, use_param_descriptions)
+    schema["parameters"] = parse_function_params(function, descriptions)
 
     function.json = schema
     return function
