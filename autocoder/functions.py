@@ -191,3 +191,64 @@ def function_call(
         result = json.dumps({"result": str(result)})
 
     return result
+
+
+def collect_functions(
+    scope: dict,
+    include_functions=True,
+    include_classes=True,
+    include_dataclasses=True,
+    collect_imports=False,
+    whitelist=None,
+    blacklist=None,
+    add_schema=False,
+):
+    """
+    Collects functions, classes, and dataclasses from a given scope.
+
+    Args:
+        scope (dict): The scope within which to collect functions, classes, etc.
+        include_functions (bool, optional): Whether to include functions. Defaults to True.
+        include_classes (bool, optional): Whether to include classes. Defaults to True.
+        include_dataclasses (bool, optional): Whether to include dataclasses. Defaults to True.
+        collect_imports (bool, optional): Whether to include imported functions/classes. Defaults to False.
+        whitelist (list, optional): List of names to explicitly include. Defaults to None.
+        blacklist (list, optional): List of names to explicitly exclude. Defaults to None.
+        add_schema (bool, optional): Whether to add a JSON schema for each collected item. Defaults to False.
+
+    Returns:
+        dict: A dictionary containing the collected functions, classes, and/or dataclasses.
+
+    Examples:
+        >>> fn = lambda: None
+        >>> collect_functions(globals())
+        {'fn': <function <lambda> at 0x7f2bfa163d90>}
+    """
+    functions = {}
+    scope_name = scope.get("__name__", None) or inspect.currentframe().f_back.f_globals["__name__"]
+    for name, fn in scope.items():
+        if blacklist and name in blacklist:
+            continue
+
+        if whitelist and name in whitelist:
+            functions[name] = fn
+            continue
+
+        if isbuiltin(fn):
+            continue
+
+        if not collect_imports and getattr(fn, "__module__", None) != scope_name:
+            print("imported", name, getattr(fn, "__module__", None))
+            continue
+
+        if include_functions and inspect.isfunction(fn):
+            functions[name] = fn
+        elif include_classes and inspect.isclass(fn):
+            functions[name] = fn
+        elif include_dataclasses and is_dataclass(fn):
+            functions[name] = fn
+
+    if add_schema:
+        functions = {name: json_schema(f) for name, f in functions.items()}
+
+    return functions
