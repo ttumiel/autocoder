@@ -238,7 +238,6 @@ def collect_functions(
             continue
 
         if not collect_imports and getattr(fn, "__module__", None) != scope_name:
-            print("imported", name, getattr(fn, "__module__", None))
             continue
 
         if include_functions and inspect.isfunction(fn):
