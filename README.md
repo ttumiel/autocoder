@@ -21,9 +21,14 @@ pip install -e .
 from autocoder import json_schema
 
 @json_schema
-def my_function(arg1: int, arg2: str) -> bool:
-    """This is a sample function."""
-    return arg1 == int(arg2)
+def my_function(x: float, y: float) -> bool:
+    """This is a sample function.
+
+    Args:
+        x: The first float.
+        y: Another float.
+    """
+    return x > y
 ```
 
 After this, `my_function` will have an additional `.json` attribute containing its JSON schema.
@@ -33,9 +38,9 @@ print(my_function.json)
 
 {'description': 'This is a sample function.',
  'name': 'my_function',
- 'parameters': {'properties': {'arg1': {'type': 'integer'},
-                               'arg2': {'type': 'string'}},
-                'required': ['arg1', 'arg2'],
+ 'parameters': {'properties': {'x': {'description': 'The first float.', 'type': 'number'},
+                               'y': {'description': 'Another float.', 'type': 'number'}},
+                'required': ['x', 'y'],
                 'type': 'object'}}
 ```
 
