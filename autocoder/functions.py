@@ -150,7 +150,7 @@ def function_call_error(error: str):
         exc = traceback.format_exc()
         logger.error("Function Call Exception:\n" + exc)
         if error:
-            raise FunctionCallError(error)
+            raise FunctionCallError(error + f" {e}")
 
 
 def function_call(
