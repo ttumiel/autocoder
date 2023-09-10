@@ -85,7 +85,10 @@ def parse_function_params(function: Callable, descriptions: bool = True) -> dict
 
         # Include the description
         if descriptions and doc_param.description:
-            schema["properties"][name]["description"] = doc_param.description
+            desc = doc_param.description
+            if "default" not in desc.lower() and sig_param.default is not inspect._empty:
+                desc.append(" (default: {})".format(sig_param.default))
+            schema["properties"][name]["description"] = desc
 
     return schema
 
@@ -106,18 +109,20 @@ def json_schema(function: Callable = None, *, descriptions: bool = True):
         }
         ```
     """
+    assert not hasattr(function, "json"), "Function already has a json attribute."
+
     if function is None:
         return partial(json_schema, descriptions=descriptions)
 
     schema = {}
     schema["name"] = function.__name__
-
-    docstring = parse(inspect.getdoc(function))
-    desc = docstring.long_description or docstring.short_description
-    if desc and descriptions:
-        schema["description"] = desc
-
     schema["parameters"] = parse_function_params(function, descriptions)
+
+    if descriptions:
+        docstring = parse(inspect.getdoc(function))
+        desc = docstring.long_description or docstring.short_description
+        if desc:
+            schema["description"] = desc
 
     function.json = schema
     return function
