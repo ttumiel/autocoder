@@ -2,7 +2,7 @@ import json
 from dataclasses import dataclass
 
 
-from autocoder.server import PluginServer
+from autocoder.server import FunctionServer
 
 
 def fn_route_exists(url_map, route: str):
@@ -13,7 +13,7 @@ def fn_route_exists(url_map, route: str):
 
 
 def make_client(functions):
-    server = PluginServer(functions)
+    server = FunctionServer(functions)
     server.app.config["TESTING"] = True
     client = server.app.test_client()
 

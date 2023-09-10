@@ -11,7 +11,7 @@ from flask_cors import CORS
 from .functions import function_call, json_schema
 
 
-class PluginServer:
+class FunctionServer:
     def __init__(self, functions: Dict[str, Callable], port: int = 3333, validate: bool = True):
         self.port = port
         self.validate = validate
