@@ -192,7 +192,7 @@ def function_call(
     try:
         result = json.dumps(result)
     except:
-        logging.warning("Function result is not JSON serializable.")
+        logger.warning("Function result is not JSON serializable.")
         result = json.dumps({"result": str(result)})
 
     return result
