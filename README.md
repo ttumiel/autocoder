@@ -85,3 +85,18 @@ arguments = json.dumps({"x": "a", "y": 2.0})
 result = function_call("plusplus", arguments, functions)
 # FunctionCallError: Function call failed. 1 validation error for plusplus
 ```
+
+#### Creating a ChatGPT Plugin
+
+You can easily create and demo a ChatGPT plugin using the included server. First, install the additional server requirements using `pip install -e .[server]`. Then, define the functions you want ChatGPT to be able to use, expose them with the server and connect to them from ChatGPT. Visit http://localhost:3333/ to see the available functions.
+
+```python
+from autocoder.server import FunctionServer
+
+def addition(x: float, y: float) -> float:
+    "Add two floats."
+    return x + y
+
+server = FunctionServer({"addition": addition})
+server.run()
+```
