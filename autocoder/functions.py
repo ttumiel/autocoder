@@ -194,7 +194,7 @@ def function_call(
 
 
 def collect_functions(
-    scope: Dict[str, Any],
+    scope: Optional[Dict[str, Any]] = None,
     include_functions: bool = True,
     include_classes: bool = True,
     include_dataclasses: bool = True,
@@ -207,7 +207,7 @@ def collect_functions(
     Collects functions, classes, and dataclasses from a given scope.
 
     Args:
-        scope (dict): The scope within which to collect functions, classes, etc.
+        scope (dict): The scope within which to collect functions, classes, etc. Defaults to None.
         include_functions (bool, optional): Whether to include functions. Defaults to True.
         include_classes (bool, optional): Whether to include classes. Defaults to True.
         include_dataclasses (bool, optional): Whether to include dataclasses. Defaults to True.
@@ -221,11 +221,13 @@ def collect_functions(
 
     Examples:
         >>> fn = lambda: None
-        >>> collect_functions(globals())
+        >>> collect_functions()
         {'fn': <function <lambda> at 0x7f2bfa163d90>}
     """
     functions = {}
-    scope_name = scope.get("__name__", None) or inspect.currentframe().f_back.f_globals["__name__"]
+    last_globals = inspect.currentframe().f_back.f_globals
+    scope = scope or last_globals
+    scope_name = scope.get("__name__", last_globals["__name__"])
     for name, fn in scope.items():
         if blacklist and name in blacklist:
             continue
