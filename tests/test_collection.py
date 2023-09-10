@@ -89,7 +89,6 @@ def test_add_schema():
     def fn():
         pass
 
-    print(locals())
     functions = collect_functions(locals(), add_schema=True)
     assert "fn" in functions
     assert len(functions) == 1
