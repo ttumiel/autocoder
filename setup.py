@@ -6,10 +6,14 @@ with open("requirements.txt") as f:
 setup(
     name="autocoder",
     version="0.1.0",
+    description="Automatically creating functions that LLMs can use..",
+    author="Thomas Tumiel",
     packages=["autocoder"],
+    license="Apache License, Version 2.0",
     install_requires=packages,
+    python_requires=">=3.7",
     extras_require={
-        "dev": ["pytest>=7.0.0", "black>=23.0.0", "isort>=5.12.0"],
+        "dev": ["pytest", "black", "isort", "pytest-cov"],
         "server": ["Flask>=2.3.3", "Flask-Cors>=4.0.0"],
     },
 )
