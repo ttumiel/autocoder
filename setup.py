@@ -14,6 +14,6 @@ setup(
     python_requires=">=3.7",
     extras_require={
         "dev": ["pytest", "black", "isort", "pytest-cov"],
-        "server": ["Flask>=2.3.3", "Flask-Cors>=4.0.0"],
+        "server": ["Flask", "Flask-Cors"],
     },
 )
