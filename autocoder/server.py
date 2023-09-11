@@ -35,7 +35,7 @@ class FunctionServer:
         @wraps(func)
         def wrapper():
             try:
-                args = request.get_data(as_text=True) if request.method == "POST" else "{}"
+                args = request.json if request.method == "POST" and request.is_json else "{}"
                 result = function_call(route, args, self.functions, validate=validate)
                 return Response(result, mimetype="application/json")
 

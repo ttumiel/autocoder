@@ -1,7 +1,6 @@
 import json
 from dataclasses import dataclass
 
-
 from autocoder.server import FunctionServer
 
 
