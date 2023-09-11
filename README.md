@@ -1,7 +1,7 @@
 # Autocoder
 
-![Tests](https://github.com/ttumiel/autocoder/actions/workflows/ci.yml/badge.svg)
-![License](https://img.shields.io/github/license/ttumiel/autocoder)
+[![CI](https://github.com/ttumiel/autocoder/actions/workflows/ci.yml/badge.svg)](https://github.com/ttumiel/autocoder/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/ttumiel/autocoder)](https://github.com/ttumiel/autocoder/blob/main/LICENSE.txt)
 
 
 `autocoder` automatically generates JSON schemas from Python functions, classes, and data structures to be called with the OpenAI function calling API or ChatGPT plugins.
