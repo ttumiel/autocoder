@@ -1,10 +1,12 @@
-## Autocoder
+# Autocoder
 
-### Overview
+![Tests](https://github.com/ttumiel/autocoder/actions/workflows/ci.yml/badge.svg)
+![License](https://img.shields.io/github/license/ttumiel/autocoder)
 
-`autocoder` automatically generates JSON schemas from Python functions, classes, and data structures to be called with the OpenAI function calling API.
 
-### Installation
+`autocoder` automatically generates JSON schemas from Python functions, classes, and data structures to be called with the OpenAI function calling API or ChatGPT plugins.
+
+## Installation
 
 ```bash
 # Clone the repo
@@ -13,9 +15,9 @@ cd autocoder
 pip install -e .
 ```
 
-### Quick Start
+## Quick Start
 
-#### Annotate your function with `@json_schema`
+### Annotate your function with `@json_schema`
 
 ```python
 from autocoder import json_schema
@@ -44,7 +46,7 @@ print(my_function.json)
                 'type': 'object'}}
 ```
 
-#### Using Custom Classes
+### Using Custom Classes
 
 `json_schema` works with classes or dataclasses too. Set `descriptions=False` to not generate object descriptions from docstrings.
 
@@ -59,7 +61,7 @@ print(Data.json)
  'parameters': {'type': 'object', 'properties': {'a': {'type': 'integer'}}}}
 ```
 
-#### Calling Functions with JSON Arguments
+### Calling Functions with JSON Arguments
 
 `function_call` provides additional functionality for calling functions with JSON arguments. It automatically converts JSON arguments to Python objects and returns the result as JSON. It validates the JSON, raising `FunctionCallError` if something is unexpected.
 
@@ -86,7 +88,7 @@ result = function_call("plusplus", arguments, functions)
 # FunctionCallError: Function call failed. 1 validation error for plusplus
 ```
 
-#### Creating a ChatGPT Plugin
+### Creating a ChatGPT Plugin
 
 You can easily create and demo a ChatGPT plugin using the included server. First, install the additional server requirements using `pip install -e .[server]`. Then, define the functions you want ChatGPT to be able to use, expose them with the server and connect to them from ChatGPT. Visit http://localhost:3333/ to see the available functions.
 
