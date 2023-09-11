@@ -9,7 +9,7 @@ setup(
     description="Automatically creating functions that LLMs can use..",
     author="Thomas Tumiel",
     packages=["autocoder"],
-    license="Apache License, Version 2.0",
+    license="MIT",
     install_requires=packages,
     python_requires=">=3.7",
     extras_require={
