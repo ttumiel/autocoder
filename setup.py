@@ -13,7 +13,7 @@ setup(
     install_requires=packages,
     python_requires=">=3.7",
     extras_require={
-        "dev": ["pytest", "black", "isort", "pytest-cov"],
+        "test": ["pytest", "black", "isort", "pytest-cov"],
         "server": ["Flask", "Flask-Cors"],
     },
 )
