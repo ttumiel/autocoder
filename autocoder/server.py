@@ -1,11 +1,12 @@
 "Local server for testing plugins"
 
 import json
+import os
 from functools import wraps
 from typing import Callable, Dict
 
 import yaml
-from flask import Flask, Response, jsonify, render_template_string, request
+from flask import Flask, Response, jsonify, render_template_string, request, send_file
 from flask_cors import CORS
 
 from .functions import function_call, json_schema
@@ -35,8 +36,10 @@ class FunctionServer:
         @wraps(func)
         def wrapper():
             try:
-                args = request.json if request.method == "POST" and request.is_json else "{}"
-                result = function_call(route, args, self.functions, validate=validate)
+                args = request.json if request.method == "POST" and request.is_json else {}
+                result = function_call(
+                    route, args, self.functions, validate=validate, from_json=False
+                )
                 return Response(result, mimetype="application/json")
 
             except Exception as e:
@@ -45,8 +48,9 @@ class FunctionServer:
     def plugin_routes(self):
         @self.app.route("/logo.png")
         def plugin_logo():
-            red_pixel_data = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde\x00\x00\x00\x0cIDATx\x9cc\xf8\xff\xff?\x00\x05\xfe\x02\xfe\xdc\xccY\xe7\x00\x00\x00\x00IEND\xaeB`\x82"
-            return Response(red_pixel_data, mimetype="image/png")
+            current_dir = os.path.dirname(__file__)
+            image_path = os.path.join(current_dir, "..", "logo.png")
+            return send_file(image_path, mimetype="image/png")
 
         self.plugin_json = self.build_plugin_json()
 
@@ -118,5 +122,5 @@ class FunctionServer:
 
         return openapi_spec
 
-    def run(self, debug=True):
-        self.app.run(debug=debug, port=self.port)
+    def run(self, debug=True, **kwargs):
+        self.app.run(debug=debug, port=self.port, **kwargs)
