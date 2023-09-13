@@ -54,7 +54,7 @@ def test_server_no_args():
 def test_server_dataclass():
     client = make_client({"DataTest": DataTest})
 
-    rv = client.post("/DataTest", json=json.dumps({"a": 1, "b": 2.0}))
+    rv = client.post("/DataTest", json={"a": 1, "b": 2.0})
     assert rv.status_code == 200
     assert json.loads(rv.data) == {"result": "DataTest(a=1, b=2.0)"}
 
@@ -70,18 +70,18 @@ def test_server_with_args():
 
     client = make_client({"foo": foo, "bar": bar})
 
-    rv = client.post("/foo", json=json.dumps({"a": 1, "b": 2.0}))
+    rv = client.post("/foo", json={"a": 1, "b": 2.0})
     assert rv.status_code == 200
     assert json.loads(rv.data)
 
-    rv = client.post("/foo", json=json.dumps({"a": False, "b": "test"}))
+    rv = client.post("/foo", json={"a": False, "b": "test"})
     assert rv.status_code == 400
     assert "Error" in json.loads(rv.data)
 
-    rv = client.post("/bar", json=json.dumps({"b": False, "c": "test"}))
+    rv = client.post("/bar", json={"b": False, "c": "test"})
     assert rv.status_code == 200
     assert json.loads(rv.data)
 
-    rv = client.post("/bar", json=json.dumps({"a": 1, "b": 2.0}))
+    rv = client.post("/bar", json={"a": 1, "b": 2.0})
     assert rv.status_code == 400
     assert "Error" in json.loads(rv.data)
