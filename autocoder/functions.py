@@ -87,7 +87,7 @@ def parse_function_params(function: Callable, descriptions: bool = True) -> dict
         if descriptions and doc_param.description:
             desc = doc_param.description
             if "default" not in desc.lower() and sig_param.default is not inspect._empty:
-                desc.append(" (default: {})".format(sig_param.default))
+                desc += " (default: {})".format(sig_param.default)
             schema["properties"][name]["description"] = desc
 
     return schema
@@ -159,7 +159,12 @@ def function_call_error(error: str):
 
 
 def function_call(
-    name: str, arguments: str, functions: Dict[str, Callable], validate: bool = True
+    name: str,
+    arguments: str,
+    functions: Dict[str, Callable],
+    validate: bool = True,
+    from_json: bool = True,
+    return_json: bool = True,
 ) -> str:
     """Calls a function by name with a dictionary of arguments.
 
@@ -180,8 +185,9 @@ def function_call(
     if validate:
         function = validate_call(function)
 
-    with function_call_error("Arguments are not valid JSON."):
-        arguments = json.loads(arguments)
+    if from_json:
+        with function_call_error("Arguments are not valid JSON."):
+            arguments = json.loads(arguments)
 
     with function_call_error("Arguments do not match function signature."):
         args, kwargs = schema_to_type(function, arguments)
@@ -189,11 +195,12 @@ def function_call(
     with function_call_error("Function call failed."):
         result = function(*args, **kwargs)
 
-    try:
-        result = json.dumps(result)
-    except:
-        logger.warning("Function result is not JSON serializable.")
-        result = json.dumps({"result": str(result)})
+    if return_json:
+        try:
+            result = json.dumps(result)
+        except:
+            logger.warning("Function result is not JSON serializable.")
+            result = json.dumps({"result": str(result)})
 
     return result
 
