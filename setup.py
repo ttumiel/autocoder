@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="chat2func",
-    version="0.1.0",
+    version="0.1.1",
     description="Automatically creating functions that LLMs can use.",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
