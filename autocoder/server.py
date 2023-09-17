@@ -11,7 +11,7 @@ from .functions import function_call, json_schema
 
 try:
     import yaml
-    from flask import Flask, request, Response, jsonify, render_template_string, send_file
+    from flask import Flask, Response, jsonify, render_template_string, request, send_file
     from flask_cors import CORS
 except ImportError:
     print("Have you installed the server module requirements? `pip install autocoder[server]`")

@@ -11,7 +11,6 @@ except ImportError:
     print("Have you installed the `deploy` module requirements? `pip install autocoder[deploy]`")
 
 
-
 def request_handler(fn=None, allow_cors=True):
     if fn is None:
         return functools.partial(request_handler, allow_cors=allow_cors)
