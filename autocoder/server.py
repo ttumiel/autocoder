@@ -1,8 +1,10 @@
 "Local server for testing plugins"
 
+import inspect
 import json
 import os
 from functools import wraps
+from pathlib import Path
 from typing import Callable, Dict
 
 from .functions import function_call, json_schema
@@ -37,7 +39,7 @@ class FunctionServer:
 
         @self.app.route("/" + route, methods=["GET", "POST"])
         @wraps(func)
-        def wrapper():
+        def wrapper(request: Request):
             try:
                 args = request.json if request.method == "POST" and request.is_json else {}
                 result = function_call(
@@ -55,17 +57,17 @@ class FunctionServer:
             image_path = os.path.join(current_dir, "..", "logo.png")
             return send_file(image_path, mimetype="image/png")
 
-        self.plugin_json = self.build_plugin_json()
+        self.plugin_json = build_plugin_json(self.port)
 
         @self.app.route("/.well-known/ai-plugin.json")
         def plugin_manifest():
             return Response(json.dumps(self.plugin_json), mimetype="application/json")
 
-        self.openai_spec = self.build_openapi_spec()
+        self.openapi_schema = build_openapi_spec(self.schemas)
 
         @self.app.route("/openapi.yaml")
         def openapi_spec():
-            return Response(yaml.dump(self.openai_spec), mimetype="text/yaml")
+            return Response(yaml.dump(self.openapi_schema), mimetype="text/yaml")
 
         @self.app.route("/")
         def index():
@@ -82,48 +84,81 @@ class FunctionServer:
                 routes=routes,
             )
 
-    def build_plugin_json(self):
-        return {
-            "schema_version": "v1",
-            "name_for_human": "Example Plugin",
-            "name_for_model": "testing_plugin",
-            "description_for_human": "Example plugin.",
-            "description_for_model": "I'm testing my new plugin. Please point out anything that isn't right or that goes wrong with as much detail as possible.",
-            "auth": {"type": "none"},
-            "api": {"type": "openapi", "url": f"http://localhost:{self.port}/openapi.yaml"},
-            "logo_url": f"http://localhost:{self.port}/logo.png",
-            "contact_email": "legal@example.com",
-            "legal_info_url": "http://example.com/legal",
-        }
-
-    def build_openapi_spec(self):
-        paths = {}
-        for func_name, schema in self.schemas.items():
-            paths[f"/{func_name}"] = {
-                "post": {
-                    "operationId": func_name,
-                    "summary": schema.get("description", f"{func_name} function"),
-                    "parameters": [],
-                    "requestBody": {
-                        "required": True,
-                        "content": {"application/json": {"schema": schema["parameters"]}},
-                    },
-                    "responses": {"200": {"description": "OK"}},
-                }
-            }
-
-        openapi_spec = {
-            "openapi": "3.0.1",
-            "info": {
-                "title": "Testing Plugin",
-                "description": "Testing a ChatGPT plugin with these functions: "
-                + ", ".join(self.functions.keys()),
-                "version": "v1",
-            },
-            "paths": paths,
-        }
-
-        return openapi_spec
-
     def run(self, debug=True, **kwargs):
         self.app.run(debug=debug, port=self.port, **kwargs)
+
+    def export(self, path: str):
+        """Dump the plugin files into a new dir, ready for deployment.
+        This is experimental. You should confirm that all necessary imports
+        and additional code files are added.
+        """
+        from .deploy import request_handler
+
+        path = Path(path)
+        path.mkdir(exist_ok=True, parents=True)
+        with open(path / "requirements.txt", "a") as f:
+            f.write("functions-framework==3.*")
+            f.write("git+https://github.com/ttumiel/autocoder.git # autocoder")
+            f.write("# Append all project requirements here:")
+
+        with open(path / "main.py", "w") as f:
+            f.write(
+                "import functools\nimport traceback\nfrom autocoder import function_call\nfrom flask import Request, Response\nimport functions_framework\n\n\n"
+            )
+            f.write(inspect.getsource(request_handler) + "\n\n\n")
+
+            for function in self.functions.values():
+                f.write("@request_handler\n" + inspect.getsource(function) + "\n\n\n")
+
+        with open(path / ".well-known/ai-plugin.json", "w") as f:
+            f.write(self.plugin_json)
+
+        with open(path / "openapi.yaml", "w") as f:
+            f.write(self.openapi_schema)
+
+
+def build_plugin_json(port: int) -> dict:
+    "Builds an example dict of a plugin's `ai-plugin.json` file."
+    return {
+        "schema_version": "v1",
+        "name_for_human": "Example Plugin",
+        "name_for_model": "testing_plugin",
+        "description_for_human": "Example plugin.",
+        "description_for_model": "I'm testing my new plugin. Please point out anything that isn't right or that goes wrong with as much detail as possible.",
+        "auth": {"type": "none"},
+        "api": {"type": "openapi", "url": f"http://localhost:{port}/openapi.yaml"},
+        "logo_url": f"http://localhost:{port}/logo.png",
+        "contact_email": "legal@example.com",
+        "legal_info_url": "http://example.com/legal",
+    }
+
+
+def build_openapi_spec(schemas: Dict[str, dict]) -> dict:
+    "Builds the OpenAPI spec from a set of function schemas."
+    paths = {}
+    for func_name, schema in schemas.items():
+        paths[f"/{func_name}"] = {
+            "post": {
+                "operationId": func_name,
+                "summary": schema.get("description", f"{func_name} function"),
+                "parameters": [],
+                "requestBody": {
+                    "required": True,
+                    "content": {"application/json": {"schema": schema["parameters"]}},
+                },
+                "responses": {"200": {"description": "OK"}},
+            }
+        }
+
+    openapi_spec = {
+        "openapi": "3.0.1",
+        "info": {
+            "title": "Testing Plugin",
+            "description": "Testing a ChatGPT plugin with these functions: "
+            + ", ".join(schemas.keys()),
+            "version": "v1",
+        },
+        "paths": paths,
+    }
+
+    return openapi_spec
