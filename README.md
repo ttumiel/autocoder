@@ -82,7 +82,7 @@ arguments = json.dumps({"x": 1.0, "y": 2.0})
 result = function_call("plusplus", arguments, functions)
 print(result) # 3.0
 
-# We can optionally validate the function arguments too.
+# We can optionally validate the function arguments too. Defaults to on.
 arguments = json.dumps({"x": "a", "y": 2.0})
 result = function_call("plusplus", arguments, functions)
 # FunctionCallError: Function call failed. 1 validation error for plusplus
