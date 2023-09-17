@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from chatterpy import FunctionCallError, function_call
+from chat2func import FunctionCallError, function_call
 
 
 @pytest.fixture

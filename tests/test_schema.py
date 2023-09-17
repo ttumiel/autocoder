@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 import pytest
 
-from chatterpy import json_schema
+from chat2func import json_schema
 
 
 def bare_function(arg1, arg2):

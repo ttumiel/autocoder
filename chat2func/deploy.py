@@ -8,7 +8,7 @@ from .functions import function_call
 try:
     import functions_framework
 except ImportError:
-    print("Have you installed the `deploy` module requirements? `pip install chatterpy[deploy]`")
+    print("Have you installed the `deploy` module requirements? `pip install chat2func[deploy]`")
 
 
 def request_handler(fn=None, allow_cors=True):
@@ -45,3 +45,4 @@ def request_handler(fn=None, allow_cors=True):
             return (f"Function call error: {e}", 400, headers)
 
     return thunk
+chat2func

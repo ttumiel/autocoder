@@ -1,17 +1,17 @@
-# Chatterpy
+# chat2func
 
-[![CI](https://github.com/ttumiel/chatterpy/actions/workflows/ci.yml/badge.svg)](https://github.com/ttumiel/chatterpy/actions/workflows/ci.yml)
-[![License](https://img.shields.io/github/license/ttumiel/chatterpy)](https://github.com/ttumiel/chatterpy/blob/main/LICENSE.txt)
+[![CI](https://github.com/ttumiel/chat2func/actions/workflows/ci.yml/badge.svg)](https://github.com/ttumiel/chat2func/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/ttumiel/chat2func)](https://github.com/ttumiel/chat2func/blob/main/LICENSE.txt)
 
 
-`chatterpy` automatically generates JSON schemas from Python, allowing ChatGPT to talk to your code.
+`chat2func` automatically generates JSON schemas from Python, allowing ChatGPT to talk to your code.
 
 ## Installation
 
 ```bash
 # Clone the repo
-git clone git@github.com:ttumiel/chatterpy.git
-cd chatterpy
+git clone git@github.com:ttumiel/chat2func.git
+cd chat2func
 pip install -e .
 ```
 
@@ -20,7 +20,7 @@ pip install -e .
 ### Annotate your function with `@json_schema`
 
 ```python
-from chatterpy import json_schema
+from chat2func import json_schema
 
 @json_schema
 def my_function(x: float, y: float) -> bool:
@@ -67,7 +67,7 @@ print(Data.json)
 
 ```python
 import json
-from chatterpy import function_call, collect_functions
+from chat2func import function_call, collect_functions
 
 def plusplus(x: float, y: float) -> float:
     "Add two floats."
@@ -93,7 +93,7 @@ result = function_call("plusplus", arguments, functions)
 You can easily create and demo a ChatGPT plugin using the included server. First, install the additional server requirements using `pip install -e .[server]`. Then, define the functions you want ChatGPT to be able to use, expose them with the server and connect to them from ChatGPT. Visit http://localhost:3333/ to see the available functions.
 
 ```python
-from chatterpy.server import FunctionServer
+from chat2func.server import FunctionServer
 
 def addition(x: float, y: float) -> float:
     "Add two floats."

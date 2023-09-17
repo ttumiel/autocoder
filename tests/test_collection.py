@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from chatterpy.functions import collect_functions
+from chat2func.functions import collect_functions
 
 
 def test_collect_function():
@@ -56,7 +56,7 @@ def test_ignore_dataclass():
 
 
 def test_collect_imported_function():
-    from chatterpy import json_schema
+    from chat2func import json_schema
 
     functions = collect_functions(locals(), collect_imports=True)
     assert "json_schema" in functions
@@ -64,7 +64,7 @@ def test_collect_imported_function():
 
 
 def test_ignore_imported_function():
-    from chatterpy import json_schema
+    from chat2func import json_schema
 
     functions = collect_functions(locals(), collect_imports=False)
     assert "json_schema" not in functions
