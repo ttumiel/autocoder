@@ -10,7 +10,6 @@
 ## Installation
 
 ```bash
-# Clone the repo
 pip install chat2func
 ```
 
