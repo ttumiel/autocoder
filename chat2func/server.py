@@ -98,7 +98,7 @@ class FunctionServer:
         path.mkdir(exist_ok=True, parents=True)
         with open(path / "requirements.txt", "a") as f:
             f.write("functions-framework==3.*\n")
-            f.write("git+https://github.com/ttumiel/chat2func.git # chat2func\n")
+            f.write("chat2func\n")
             f.write("# Append all project requirements here:\n")
 
         with open(path / "main.py", "w") as f:

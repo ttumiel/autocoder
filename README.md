@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/ttumiel/chat2func/actions/workflows/ci.yml/badge.svg)](https://github.com/ttumiel/chat2func/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/ttumiel/chat2func)](https://github.com/ttumiel/chat2func/blob/main/LICENSE.txt)
+[![PyPI](https://img.shields.io/pypi/v/chat2func.svg)](https://pypi.org/project/chat2func/)
 
 
 `chat2func` automatically generates JSON schemas from Python, allowing ChatGPT to talk to your code.
@@ -10,9 +11,7 @@
 
 ```bash
 # Clone the repo
-git clone git@github.com:ttumiel/chat2func.git
-cd chat2func
-pip install -e .
+pip install chat2func
 ```
 
 ## Quick Start
@@ -90,7 +89,7 @@ result = function_call("plusplus", arguments, functions)
 
 ### Creating a ChatGPT Plugin
 
-You can easily create and demo a ChatGPT plugin using the included server. First, install the additional server requirements using `pip install -e .[server]`. Then, define the functions you want ChatGPT to be able to use, expose them with the server and connect to them from ChatGPT. Visit http://localhost:3333/ to see the available functions.
+You can easily create and demo a ChatGPT plugin using the included server. First, install the additional server requirements using `pip install chat2func[server]`. Then, define the functions you want ChatGPT to be able to use, expose them with the server and connect to them from ChatGPT. Visit http://localhost:3333/ to see the available functions.
 
 ```python
 from chat2func.server import FunctionServer
