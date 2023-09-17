@@ -45,4 +45,3 @@ def request_handler(fn=None, allow_cors=True):
             return (f"Function call error: {e}", 400, headers)
 
     return thunk
-
