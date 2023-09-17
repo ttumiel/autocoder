@@ -9,6 +9,7 @@ setup(
     license="MIT",
     install_requires=["docstring-parser", "pydantic"],
     python_requires=">=3.7",
+    url="https://github.com/ttumiel/autocoder",
     extras_require={
         "test": ["pytest", "black", "isort", "pytest-cov"],
         "server": ["Flask", "Flask-Cors", "PyYAML"],
