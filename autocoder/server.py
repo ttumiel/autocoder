@@ -11,7 +11,7 @@ from .functions import function_call, json_schema
 
 try:
     import yaml
-    from flask import Flask, Request, Response, jsonify, render_template_string, send_file
+    from flask import Flask, request, Response, jsonify, render_template_string, send_file
     from flask_cors import CORS
 except ImportError:
     print("Have you installed the server module requirements? `pip install autocoder[server]`")
@@ -39,7 +39,7 @@ class FunctionServer:
 
         @self.app.route("/" + route, methods=["GET", "POST"])
         @wraps(func)
-        def wrapper(request: Request):
+        def wrapper():
             try:
                 args = request.json if request.method == "POST" and request.is_json else {}
                 result = function_call(
@@ -103,18 +103,20 @@ class FunctionServer:
 
         with open(path / "main.py", "w") as f:
             f.write(
-                "import functools\nimport traceback\nfrom autocoder import function_call\nfrom flask import Request, Response\nimport functions_framework\n\n\n"
+                "import functools\nimport traceback\n\nfrom autocoder import function_call\nimport functions_framework\nfrom flask import Request, Response\n\n\n"
             )
-            f.write(inspect.getsource(request_handler) + "\n\n\n")
+            f.write(inspect.getsource(request_handler) + "\n\n")
 
             for function in self.functions.values():
-                f.write("@request_handler\n" + inspect.getsource(function) + "\n\n\n")
+                f.write("@request_handler\n" + inspect.getsource(function) + "\n\n")
 
-        with open(path / ".well-known/ai-plugin.json", "w") as f:
-            f.write(self.plugin_json)
+        well_known = path / ".well-known"
+        well_known.mkdir(exist_ok=True)
+        with open(well_known / "ai-plugin.json", "w") as f:
+            f.write(json.dumps(self.plugin_json, indent=4))
 
         with open(path / "openapi.yaml", "w") as f:
-            f.write(self.openapi_schema)
+            f.write(yaml.dump(self.openapi_schema))
 
 
 def build_plugin_json(port: int) -> dict:
