@@ -94,7 +94,7 @@ class FunctionServer:
         update the generated ai-plugin.json file to describe your new plugin
         and change the host URL.
         """
-        from .deploy import request_handler, DEPLOY_IMPORTS, FIREBASE_CONFIG
+        from .deploy import DEPLOY_IMPORTS, FIREBASE_CONFIG, request_handler
 
         path = Path(path)
         path.mkdir(exist_ok=True, parents=True)
@@ -127,7 +127,9 @@ class FunctionServer:
 
         with open(path / "firebase.json", "w") as f:
             config = FIREBASE_CONFIG.copy()
-            config["hosting"]["rewrites"] = [{"source": "/" + fn, "function": fn} for fn in self.functions]
+            config["hosting"]["rewrites"] = [
+                {"source": "/" + fn, "function": fn} for fn in self.functions
+            ]
             f.write(json.dumps(config, indent=4))
 
         with open(path / ".gitignore", "w") as f:

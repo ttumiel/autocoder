@@ -30,51 +30,34 @@ initialize_app()
 '''
 
 FIREBASE_CONFIG = {
-  "functions": [
-    {
-      "source": "functions",
-      "codebase": "default",
-      "runtime": "python311",
-      "ignore": [
-        "venv",
-        ".git",
-        "*.log"
-      ]
-    }
-  ],
-  "hosting": {
-    "public": "public",
-    "rewrites": [],
-    "ignore": [
-      "firebase.json",
-      "**/.*",
+    "functions": [
+        {
+            "source": "functions",
+            "codebase": "default",
+            "runtime": "python311",
+            "ignore": ["venv", ".git", "*.log"],
+        }
     ],
-    "headers": [
-      {
-        "source": "**/*.@(json|yaml|yml)",
+    "hosting": {
+        "public": "public",
+        "rewrites": [],
+        "ignore": ["firebase.json", "**/.*"],
         "headers": [
-          {
-            "key": "Access-Control-Allow-Origin",
-            "value": "*"
-          }
-        ]
-      }
-    ]
-  }
+            {
+                "source": "**/*.@(json|yaml|yml)",
+                "headers": [{"key": "Access-Control-Allow-Origin", "value": "*"}],
+            }
+        ],
+    },
 }
-
 
 
 def request_handler(fn=None, allow_cors=True):
     if fn is None:
         return functools.partial(request_handler, allow_cors=allow_cors)
 
-
     @https_fn.on_request(
-        cors=options.CorsOptions(
-            cors_origins=[r"*"],
-            cors_methods=["get", "post"],
-        )
+        cors=options.CorsOptions(cors_origins=[r"*"], cors_methods=["get", "post"])
     )
     @functools.wraps(fn)
     def thunk(request: https_fn.Request):
