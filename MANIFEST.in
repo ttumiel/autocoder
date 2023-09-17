@@ -1,1 +1,3 @@
 global-exclude tests/*
+global-exclude notebooks/*
+global-exclude *.egg-info/*

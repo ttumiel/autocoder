@@ -1,8 +1,5 @@
 from setuptools import setup
 
-with open("requirements.txt") as f:
-    packages = f.read().splitlines()
-
 setup(
     name="autocoder",
     version="0.1.0",
@@ -10,7 +7,7 @@ setup(
     author="Thomas Tumiel",
     packages=["autocoder"],
     license="MIT",
-    install_requires=packages,
+    install_requires=["docstring-parser", "pydantic"],
     python_requires=">=3.7",
     extras_require={
         "test": ["pytest", "black", "isort", "pytest-cov"],
