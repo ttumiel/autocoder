@@ -97,9 +97,9 @@ class FunctionServer:
         path = Path(path)
         path.mkdir(exist_ok=True, parents=True)
         with open(path / "requirements.txt", "a") as f:
-            f.write("functions-framework==3.*")
-            f.write("git+https://github.com/ttumiel/autocoder.git # autocoder")
-            f.write("# Append all project requirements here:")
+            f.write("functions-framework==3.*\n")
+            f.write("git+https://github.com/ttumiel/autocoder.git # autocoder\n")
+            f.write("# Append all project requirements here:\n")
 
         with open(path / "main.py", "w") as f:
             f.write(
