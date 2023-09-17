@@ -5,11 +5,14 @@ import os
 from functools import wraps
 from typing import Callable, Dict
 
-import yaml
-from flask import Flask, Response, jsonify, render_template_string, request, send_file
-from flask_cors import CORS
-
 from .functions import function_call, json_schema
+
+try:
+    import yaml
+    from flask import Flask, Request, Response, jsonify, render_template_string, send_file
+    from flask_cors import CORS
+except ImportError:
+    print("Have you installed the server module requirements? `pip install autocoder[server]`")
 
 
 class FunctionServer:
