@@ -8,7 +8,7 @@ from .functions import function_call
 try:
     import functions_framework
 except ImportError:
-    print("Have you installed the `deploy` module requirements? `pip install autocoder[deploy]`")
+    print("Have you installed the `deploy` module requirements? `pip install chatterpy[deploy]`")
 
 
 def request_handler(fn=None, allow_cors=True):

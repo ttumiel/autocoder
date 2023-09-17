@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from autocoder import FunctionCallError, function_call
+from chatterpy import FunctionCallError, function_call
 
 
 @pytest.fixture

@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Callable, Dict, List, Optional
 
-from autocoder import FunctionCallError, function_call, json_schema
+from .functions import FunctionCallError, function_call, json_schema
 
 try:
     from IPython.display import HTML, display
@@ -19,7 +19,7 @@ try:
     import openai
     from tenacity import retry, stop_after_attempt, wait_random_exponential
 except ImportError:
-    print("Have you installed the API module requirements? `pip install autocoder[api]`")
+    print("Have you installed the API module requirements? `pip install chatterpy[api]`")
 
 SYSTEM_PROMPT = "You are a highly capable AI assistant, helping develop and test a function calling API. \
 You can access the following functions and should use them when relevant: {functions}"

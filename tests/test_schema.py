@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 import pytest
 
-from autocoder import json_schema
+from chatterpy import json_schema
 
 
 def bare_function(arg1, arg2):

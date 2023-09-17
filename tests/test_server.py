@@ -1,7 +1,7 @@
 import json
 from dataclasses import dataclass
 
-from autocoder.server import FunctionServer
+from chatterpy.server import FunctionServer
 
 
 def fn_route_exists(url_map, route: str):

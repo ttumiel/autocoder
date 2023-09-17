@@ -14,7 +14,7 @@ try:
     from flask import Flask, Response, jsonify, render_template_string, request, send_file
     from flask_cors import CORS
 except ImportError:
-    print("Have you installed the server module requirements? `pip install autocoder[server]`")
+    print("Have you installed the server module requirements? `pip install chatterpy[server]`")
 
 
 class FunctionServer:
@@ -98,12 +98,12 @@ class FunctionServer:
         path.mkdir(exist_ok=True, parents=True)
         with open(path / "requirements.txt", "a") as f:
             f.write("functions-framework==3.*\n")
-            f.write("git+https://github.com/ttumiel/autocoder.git # autocoder\n")
+            f.write("git+https://github.com/ttumiel/chatterpy.git # chatterpy\n")
             f.write("# Append all project requirements here:\n")
 
         with open(path / "main.py", "w") as f:
             f.write(
-                "import functools\nimport traceback\n\nfrom autocoder import function_call\nimport functions_framework\nfrom flask import Request, Response\n\n\n"
+                "import functools\nimport traceback\n\nfrom chatterpy import function_call\nimport functions_framework\nfrom flask import Request, Response\n\n\n"
             )
             f.write(inspect.getsource(request_handler) + "\n\n")
 
