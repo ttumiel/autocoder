@@ -90,33 +90,51 @@ class FunctionServer:
     def export(self, path: str):
         """Dump the plugin files into a new dir, ready for deployment.
         This is experimental. You should confirm that all necessary imports
-        and additional code files are added.
+        and additional code files are added. Also remember to add a logo and
+        update the generated ai-plugin.json file to describe your new plugin
+        and change the host URL.
         """
-        from .deploy import request_handler
+        from .deploy import request_handler, DEPLOY_IMPORTS, FIREBASE_CONFIG
 
         path = Path(path)
         path.mkdir(exist_ok=True, parents=True)
-        with open(path / "requirements.txt", "a") as f:
-            f.write("functions-framework==3.*\n")
-            f.write("chat2func\n")
-            f.write("# Append all project requirements here:\n")
 
-        with open(path / "main.py", "w") as f:
-            f.write(
-                "import functools\nimport traceback\n\nfrom chat2func import function_call\nimport functions_framework\nfrom flask import Request, Response\n\n\n"
-            )
+        public = path / "public"
+        public.mkdir(exist_ok=True)
+
+        functions = path / "functions"
+        functions.mkdir(exist_ok=True)
+
+        with open(functions / "requirements.txt", "a") as f:
+            f.write("firebase-functions\n")
+            f.write("chat2func\n")
+            f.write("# Append all other project requirements here:\n")
+
+        with open(functions / "main.py", "w") as f:
+            f.write(DEPLOY_IMPORTS)
             f.write(inspect.getsource(request_handler) + "\n\n")
 
             for function in self.functions.values():
                 f.write("@request_handler\n" + inspect.getsource(function) + "\n\n")
 
-        well_known = path / ".well-known"
+        well_known = public / ".well-known"
         well_known.mkdir(exist_ok=True)
         with open(well_known / "ai-plugin.json", "w") as f:
             f.write(json.dumps(self.plugin_json, indent=4))
 
-        with open(path / "openapi.yaml", "w") as f:
+        with open(public / "openapi.yaml", "w") as f:
             f.write(yaml.dump(self.openapi_schema))
+
+        with open(path / "firebase.json", "w") as f:
+            config = FIREBASE_CONFIG.copy()
+            config["hosting"]["rewrites"] = [{"source": "/" + fn, "function": fn} for fn in self.functions]
+            f.write(json.dumps(config, indent=4))
+
+        with open(path / ".gitignore", "w") as f:
+            f.write("logs\n*.log*\n.firebase/\n.env\n__pycache__\nvenv")
+
+        print(f"Plugin exported to `{path}`")
+        print(f"Run `cd {path} && firebase deploy` to publish.")
 
 
 def build_plugin_json(port: int) -> dict:

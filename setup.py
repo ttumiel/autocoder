@@ -16,6 +16,6 @@ setup(
         "test": ["pytest", "black", "isort", "pytest-cov"],
         "server": ["Flask", "Flask-Cors", "PyYAML"],
         "api": ["openai"],
-        "deploy": ["functions-framework"],
+        "deploy": ["firebase-functions"],
     },
 )
