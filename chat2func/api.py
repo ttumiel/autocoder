@@ -152,7 +152,7 @@ class FunctionCallingAPI:
             except Exception as e:
                 print("Error: " + str(e))
 
-    @retry(wait=wait_random_exponential(multiplier=1, max=40), stop=stop_after_attempt(3))
+    @retry(wait=wait_random_exponential(multiplier=1, max=40), stop=stop_after_attempt(3), reraise=True)
     def reply(self, force_function: str = "auto", insert_functions=True, stream=False):
         "force_function can be 'auto', 'none', or a function name"
         if force_function != "none" and force_function != "auto":
@@ -162,7 +162,7 @@ class FunctionCallingAPI:
             model=self.model,
             messages=self.chat.get_messages(),
             functions=(self.schemas or None) if insert_functions else None,
-            function_call={"name": force_function} if force_function != "auto" else None,
+            function_call={"name": force_function} if force_function != "auto" else "auto",
             # TODO: streaming... Need to add partial message printing
         )
         return Message(**response["choices"][0]["message"])
