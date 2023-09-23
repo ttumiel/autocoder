@@ -152,7 +152,9 @@ class FunctionCallingAPI:
             except Exception as e:
                 print("Error: " + str(e))
 
-    @retry(wait=wait_random_exponential(multiplier=1, max=40), stop=stop_after_attempt(3), reraise=True)
+    @retry(
+        wait=wait_random_exponential(multiplier=1, max=40), stop=stop_after_attempt(3), reraise=True
+    )
     def reply(self, force_function: str = "auto", insert_functions=True, stream=False):
         "force_function can be 'auto', 'none', or a function name"
         if force_function != "none" and force_function != "auto":
