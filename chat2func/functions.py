@@ -7,7 +7,7 @@ import traceback
 from collections import OrderedDict
 from contextlib import contextmanager
 from dataclasses import dataclass, field, is_dataclass
-from functools import partial
+from functools import partial, update_wrapper
 from typing import Any, Callable, Dict, Optional, Set
 
 from docstring_parser import Docstring, parse
@@ -41,7 +41,7 @@ def docstring_to_params(docstring: Docstring) -> Dict[str, Parameter]:
 
 
 def isbuiltin(py_type: type) -> bool:
-    return getattr(py_type, "__module__", None) == "builtins"
+    return getattr(py_type, "__module__", None) in ("builtins", "__builtin__")
 
 
 def type_to_schema(py_type: type) -> Dict[str, str]:
@@ -93,8 +93,66 @@ def parse_function_params(function: Callable, descriptions: bool = True) -> dict
     return schema
 
 
-def json_schema(function: Callable = None, *, descriptions: bool = True):
+class JsonSchema:
+    def __init__(
+        self, function: Callable = None, *, descriptions: bool = True, full_docstring: bool = False
+    ):
+        self.function = function
+        self.descriptions = descriptions
+        self.full_docstring = full_docstring
+        self._cached_schema = None
+        self.name = function.__name__
+        update_wrapper(self, function)
+
+    def __get__(self, obj, objtype=None):
+        # bind function to instance, and rewrap with schema
+        bound_method = self.function.__get__(obj, objtype)
+        bound_schema = self.__class__(bound_method, descriptions=self.descriptions)
+        if obj is None:
+            return bound_schema
+
+        # cache method
+        obj.__dict__[self.name] = bound_schema
+        return obj.__dict__[self.name]
+
+    def __call__(self, *args, **kwds):
+        return self.function(*args, **kwds)
+
+    @property
+    def json(self):
+        if self._cached_schema is None:
+            self._cached_schema = self.make_schema()
+        return self._cached_schema
+
+    def make_schema(self):
+        schema = {}
+        schema["name"] = self.function.__name__
+        schema["parameters"] = parse_function_params(self.function, self.descriptions)
+
+        if self.descriptions:
+            docstring = parse(inspect.getdoc(self.function))
+            desc = docstring.short_description or ""
+
+            if self.full_docstring and docstring.long_description:
+                desc += "\n" + docstring.long_description
+
+            if desc:
+                schema["description"] = desc
+
+        return schema
+
+
+def json_schema(
+    function: Callable = None, *, descriptions: bool = True, full_docstring: bool = False
+):
     """Extracts the schema of a function into the .json attribute.
+
+    Args:
+        function (Callable): The function to extract the schema from.
+        descriptions (bool): Whether to include descriptions from the docstring
+            in the schema. Defaults to True.
+        full_docstring (bool): Whether to include the full docstring description,
+            or just the short_description (first line). Defaults to False.
 
     Examples:
         ```
@@ -110,22 +168,12 @@ def json_schema(function: Callable = None, *, descriptions: bool = True):
         ```
     """
     assert not hasattr(function, "json"), "Function already has a json attribute."
+    assert callable(function) or isinstance(function, classmethod), "`function` must be callable"
 
     if function is None:
-        return partial(json_schema, descriptions=descriptions)
+        return partial(JsonSchema, descriptions=descriptions, full_docstring=full_docstring)
 
-    schema = {}
-    schema["name"] = function.__name__
-    schema["parameters"] = parse_function_params(function, descriptions)
-
-    if descriptions:
-        docstring = parse(inspect.getdoc(function))
-        desc = docstring.long_description or docstring.short_description
-        if desc:
-            schema["description"] = desc
-
-    function.json = schema
-    return function
+    return JsonSchema(function, descriptions=descriptions, full_docstring=full_docstring)
 
 
 def schema_to_type(function: Callable, arguments: Dict[str, Any]) -> (list, dict):
