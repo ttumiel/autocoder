@@ -181,14 +181,12 @@ def schema_to_type(function: Callable, arguments: Dict[str, Any]) -> (list, dict
     signature = inspect.signature(function)
     for name, parameter in signature.parameters.items():
         if name in arguments:
-            if (
-                not isbuiltin(parameter.annotation)
-                and inspect.isclass(parameter.annotation)
-                or inspect.isfunction(parameter.annotation)
+            if not isbuiltin(parameter.annotation) and (
+                inspect.isclass(parameter.annotation) or inspect.isfunction(parameter.annotation)
             ):
-                arguments[name] = parameter.annotation(**arguments[name])
-
-    # TODO: recursive call for nested objects
+                nested_func = parameter.annotation
+                args, nested_kwargs = schema_to_type(nested_func, arguments[name])
+                arguments[name] = nested_func(*args, **nested_kwargs)
 
     bound_arguments = signature.bind(**arguments)
     bound_arguments.apply_defaults()
