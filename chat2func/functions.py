@@ -176,7 +176,70 @@ def json_schema(
     return JsonSchema(function, descriptions=descriptions, full_docstring=full_docstring)
 
 
-def schema_to_type(function: Callable, arguments: Dict[str, Any]) -> (list, dict):
+def instantiate_type(py_type: type, value: Any, scope: Optional[Dict[str, Any]] = None) -> Any:
+    """Instantiate a python type from a json value.
+
+    Args:
+        py_type (type): The python type to instantiate.
+        value (Any): The value to instantiate the type with.
+        scope (dict): The scope within which to evaluate the type. Defaults to the calling module.
+
+    Raises:
+        TypeError: Invalid value type for the given type.
+        ValueError: If the type cannot be instantiated with the given value.
+    """
+    if py_type is inspect._empty or py_type is Any:
+        return value
+
+    if py_type is type(None) and value is None:
+        return None
+
+    scope = scope or _get_outer_globals()
+    if isinstance(py_type, ForwardRef):
+        py_type = py_type._evaluate(scope, {}, frozenset())
+
+    try:
+        return py_type(value)
+    except (ValueError, TypeError):
+        logger.info("Type not directly instantiable", exc_info=True)
+
+    if hasattr(py_type, "__origin__"):
+        origin = py_type.__origin__
+        args = getattr(py_type, "__args__", None)
+
+        if origin is Union:
+            for arg in args:
+                try:
+                    return instantiate_type(arg, value, scope)
+                except:
+                    pass
+            raise ValueError(f"Cannot instantiate any Union type ({args}) with value {value}")
+
+        if origin is list:
+            return list(instantiate_type(args[0], v, scope) for v in value)
+
+        if origin is tuple:
+            if (len(args) == 2 and args[1] is ...) or len(args) == 1:
+                args = [args[0]] * len(value)
+            return tuple(instantiate_type(t, v, scope) for t, v in zip(args, value))
+
+        if origin is dict:
+            key_type, value_type = args
+            return {
+                instantiate_type(key_type, k, scope): instantiate_type(value_type, v, scope)
+                for k, v in value.items()
+            }
+
+        if origin is set:
+            return set(instantiate_type(args[0], v, scope) for v in value)
+
+        return origin(value)
+
+    if not isbuiltin(py_type) and (inspect.isclass(py_type) or inspect.isfunction(py_type)):
+        args, kwds = schema_to_type(py_type, value)
+        return py_type(*args, **kwds)
+
+    raise ValueError("Couldn't instantiate type", py_type, value)
     "Convert json objects to python function arguments."
     signature = inspect.signature(function)
     for name, parameter in signature.parameters.items():
