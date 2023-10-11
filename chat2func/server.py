@@ -87,14 +87,27 @@ class FunctionServer:
     def run(self, debug=True, **kwargs):
         self.app.run(debug=debug, port=self.port, **kwargs)
 
-    def export(self, path: str):
-        """Dump the plugin files into a new dir, ready for deployment.
+    def export(self, path: str, export_source: bool = True, alias: str = "def"):
+        """Dump the plugin files into a new dir, ready for deployment to firebase.
+
         This is experimental. You should confirm that all necessary imports
         and additional code files are added. Also remember to add a logo and
         update the generated ai-plugin.json file to describe your new plugin
         and change the host URL.
+
+        Args:
+            path (str): Path to the directory to export to.
+            export_source (bool): Whether to export the source code
+                for the functions into `functions/main.py`. Defaults to True.
+            alias (str): The alias suffix to use for imported functions.
         """
-        from .deploy import DEPLOY_IMPORTS, FIREBASE_CONFIG, request_handler
+        from .deploy import (
+            DEPLOY_IMPORTS,
+            FIREBASE_CONFIG,
+            FUNCTION_DEF,
+            generate_imports_and_sources,
+            request_handler,
+        )
 
         path = Path(path)
         path.mkdir(exist_ok=True, parents=True)
@@ -110,12 +123,19 @@ class FunctionServer:
             f.write("chat2func\n")
             f.write("# Append all other project requirements here:\n")
 
-        with open(functions / "main.py", "w") as f:
-            f.write(DEPLOY_IMPORTS)
-            f.write(inspect.getsource(request_handler) + "\n\n")
+        if export_source:
+            fn_imports, inline_functions = generate_imports_and_sources(
+                self.functions.values(), alias
+            )
+            with open(functions / "main.py", "w") as f:
+                f.write(DEPLOY_IMPORTS.format(imports=fn_imports))
+                f.write(inspect.getsource(request_handler) + "\n\n")
 
-            for function in self.functions.values():
-                f.write("@request_handler\n" + inspect.getsource(function) + "\n\n")
+                for name, function in self.functions.items():
+                    if name in inline_functions:
+                        f.write("@request_handler\n" + inspect.getsource(function) + "\n\n")
+                    else:
+                        f.write(FUNCTION_DEF.format(function=name, alias=alias))
 
         well_known = public / ".well-known"
         well_known.mkdir(exist_ok=True)
