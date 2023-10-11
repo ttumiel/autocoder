@@ -176,6 +176,19 @@ def json_schema(
     return JsonSchema(function, descriptions=descriptions, full_docstring=full_docstring)
 
 
+def _get_outer_globals() -> Dict[str, Any]:
+    "Attempts to get globals() from the calling module."
+    frame = inspect.currentframe()
+
+    while frame:
+        module = inspect.getmodule(frame)
+        if getattr(module, "__package__", None) != __package__:
+            return frame.f_globals
+
+        frame = frame.f_back
+    return {}
+
+
 def instantiate_type(py_type: type, value: Any, scope: Optional[Dict[str, Any]] = None) -> Any:
     """Instantiate a python type from a json value.
 
@@ -274,6 +287,7 @@ def function_call(
     validate: bool = True,
     from_json: bool = True,
     return_json: bool = True,
+    scope: Optional[Dict[str, Any]] = None,
 ) -> str:
     """Calls a function by name with a dictionary of arguments.
 
@@ -292,14 +306,17 @@ def function_call(
         function = functions[name]
 
     if validate:
-        function = validate_call(function)
+        if isinstance(function, type):
+            logger.error("Cannot validate class calls.")
+        else:
+            function = validate_call(function)
 
     if from_json:
         with function_call_error("Arguments are not valid JSON."):
             arguments = json.loads(arguments)
 
     with function_call_error("Arguments do not match function signature."):
-        args, kwargs = schema_to_type(function, arguments)
+        args, kwargs = schema_to_type(function, arguments, scope=scope)
 
     with function_call_error("Function call failed."):
         result = function(*args, **kwargs)
@@ -328,7 +345,7 @@ def collect_functions(
     Collects functions, classes, and dataclasses from a given scope.
 
     Args:
-        scope (dict): The scope within which to collect functions, classes, etc. Defaults to None.
+        scope (dict): The scope within which to collect functions, classes, etc. Defaults to the currentframe globals().
         include_functions (bool, optional): Whether to include functions. Defaults to True.
         include_classes (bool, optional): Whether to include classes. Defaults to True.
         include_dataclasses (bool, optional): Whether to include dataclasses. Defaults to True.
@@ -347,7 +364,7 @@ def collect_functions(
     """
     functions = {}
     last_globals = inspect.currentframe().f_back.f_globals
-    scope = scope or last_globals
+    scope = scope or _get_outer_globals()
     scope_name = scope.get("__name__", last_globals["__name__"])
     for name, fn in scope.items():
         if blacklist and name in blacklist:
