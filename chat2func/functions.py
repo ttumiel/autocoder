@@ -8,7 +8,7 @@ from collections import OrderedDict
 from contextlib import contextmanager
 from dataclasses import dataclass, field, is_dataclass
 from functools import partial, update_wrapper
-from typing import Any, Callable, Dict, Optional, Set
+from typing import Any, Callable, Dict, ForwardRef, Optional, Set, Union
 
 from docstring_parser import Docstring, parse
 from pydantic import BaseModel, TypeAdapter, validate_call
@@ -253,16 +253,40 @@ def instantiate_type(py_type: type, value: Any, scope: Optional[Dict[str, Any]] 
         return py_type(*args, **kwds)
 
     raise ValueError("Couldn't instantiate type", py_type, value)
+
+
+def schema_to_type(
+    function: Callable,
+    arguments: Dict[str, Any],
+    scope: Optional[Dict[str, Any]] = None,
+    strict: bool = True,
+) -> (list, dict):
     "Convert json objects to python function arguments."
+
     signature = inspect.signature(function)
+    scope = scope or _get_outer_globals()
     for name, parameter in signature.parameters.items():
         if name in arguments:
-            if not isbuiltin(parameter.annotation) and (
-                inspect.isclass(parameter.annotation) or inspect.isfunction(parameter.annotation)
-            ):
-                nested_func = parameter.annotation
-                args, nested_kwargs = schema_to_type(nested_func, arguments[name])
-                arguments[name] = nested_func(*args, **nested_kwargs)
+            ptype = parameter.annotation
+
+            if ptype is inspect._empty or ptype is Any:
+                continue
+
+            try:
+                if isinstance(ptype, ForwardRef):
+                    ptype = ptype._evaluate(scope, {}, frozenset())
+
+                if not isbuiltin(ptype) and (inspect.isclass(ptype) or inspect.isfunction(ptype)):
+                    args, nested_kwargs = schema_to_type(ptype, arguments[name], scope, strict)
+                    arguments[name] = ptype(*args, **nested_kwargs)
+                else:
+                    arguments[name] = instantiate_type(ptype, arguments[name], scope)
+
+            except Exception as e:
+                if strict:
+                    raise e
+                else:
+                    logger.warning(f"Failed to instantiate {name} from ({arguments[name]}): {e}")
 
     bound_arguments = signature.bind(**arguments)
     bound_arguments.apply_defaults()
@@ -282,7 +306,7 @@ def function_call_error(error: str):
 
 def function_call(
     name: str,
-    arguments: str,
+    arguments: Union[str, Any],
     functions: Dict[str, Callable],
     validate: bool = True,
     from_json: bool = True,
@@ -290,6 +314,18 @@ def function_call(
     scope: Optional[Dict[str, Any]] = None,
 ) -> str:
     """Calls a function by name with a dictionary of arguments.
+
+    Args:
+        name (str): The name of the function to call. A key inside `functions` arg.
+        arguments (str, Any): JSON string (or py object if from_json=False) of the arguments
+            to pass to the function.
+        functions (dict): A dictionary of available functions to call.
+        validate (bool, optional): Whether to validate the function call arg types. Not
+            possible for classes. Defaults to True.
+        from_json (bool, optional): Whether to load the arguments from JSON. Defaults to True.
+        return_json (bool, optional): Whether to return the result as JSON. Defaults to True.
+        scope (dict): The scope within which to evaluate the function's args, in order to
+            resolve type references. Defaults to the calling module.
 
     Examples:
         ```
