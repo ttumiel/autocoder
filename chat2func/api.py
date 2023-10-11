@@ -27,7 +27,10 @@ You can access the following functions and should use them when relevant: {funct
 
 class ChatModel(Enum):
     GPT3_5 = "gpt-3.5-turbo"
+    GPT3_5_16K = "gpt-3.5-turbo-16k"
+    GPT3_5_INSTRUCT = "gpt-3.5-turbo-instruct"
     GPT4 = "gpt-4"
+    GPT4_32K = "gpt-4-32k"
 
 
 class Role(Enum):
