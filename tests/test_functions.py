@@ -1,5 +1,5 @@
 import json
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 import pytest
 
@@ -31,6 +31,17 @@ def test_function_2():
     return test
 
 
+@pytest.fixture
+def test_function_3():
+    def test(a: int, b: Dict[str, ClassTest]) -> bool:
+        assert all(isinstance(v, ClassTest) for v in b.values())
+        assert all(isinstance(v, str) for v in b.keys())
+        assert isinstance(a, int)
+        return True
+
+    return test
+
+
 def test_working_function_call(test_function, call_builder):
     call = call_builder(test_function)
     assert call(json.dumps({"a": 1})) == "false"
@@ -42,6 +53,12 @@ def test_working_function_call(test_function_2, call_builder):
     call = call_builder(test_function_2, from_json=False, return_json=False, validate=False)
     assert call({"a": 1, "b": 2, "c": {"a": 3}, "d": [1, 2, 3], "e": None})
     assert call({"a": 1, "b": 2, "c": {"a": 3}, "d": [1, 2, 3], "e": "test", "f": 4})
+
+
+def test_working_function_call(test_function_3, call_builder):
+    call = call_builder(test_function_3, return_json=False, validate=False)
+    assert call(json.dumps({"a": 1, "b": {"one": {"a": 3}, "two": {"a": 4}}}))
+    assert call(json.dumps({"a": 1, "b": {}}))
 
 
 def test_function_call_with_wrong_parameters(test_function, call_builder):
