@@ -14,7 +14,7 @@ try:
     from flask import Flask, Response, jsonify, render_template_string, request, send_file
     from flask_cors import CORS
 except ImportError:
-    print("Have you installed the server module requirements? `pip install chat2func[server]`")
+    print("Have you installed the developer requirements? `pip install chat2func[develop]`")
 
 
 class FunctionServer:

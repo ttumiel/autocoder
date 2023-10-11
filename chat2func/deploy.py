@@ -6,7 +6,7 @@ from .functions import function_call
 try:
     from firebase_functions import https_fn, options
 except ImportError:
-    print("Have you installed the `deploy` module requirements? `pip install chat2func[deploy]`")
+    print("Have you installed the developer requirements? `pip install chat2func[develop]`")
 
 
 DEPLOY_IMPORTS = '''"""

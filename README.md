@@ -11,6 +11,9 @@
 
 ```bash
 pip install chat2func
+
+# Or install with developer dependencies
+pip install chat2func[develop]
 ```
 
 ## Quick Start
@@ -66,7 +69,7 @@ print(Data.json)
 
 ## Creating a ChatGPT Plugin
 
-You can easily create and demo a ChatGPT plugin using the included Flask server. First, install the additional server requirements using `pip install chat2func[server]`. Then, define the functions you want ChatGPT to be able to use, expose them with the server and connect to them from ChatGPT.
+You can easily create and demo a ChatGPT plugin using the included Flask server. First, define the functions you want ChatGPT to be able to use, expose them with the server and connect to them from ChatGPT.
 
 ```python
 from chat2func.server import FunctionServer

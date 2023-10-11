@@ -19,7 +19,7 @@ try:
     import openai
     from tenacity import retry, stop_after_attempt, wait_random_exponential
 except ImportError:
-    print("Have you installed the API module requirements? `pip install chat2func[api]`")
+    print("Have you installed the developer requirements? `pip install chat2func[develop]`")
 
 SYSTEM_PROMPT = "You are a highly capable AI assistant, helping develop and test a function calling API. \
 You can access the following functions and should use them when relevant: {functions}"

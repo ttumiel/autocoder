@@ -14,8 +14,6 @@ setup(
     url="https://github.com/ttumiel/chat2func",
     extras_require={
         "test": ["pytest", "black", "isort", "pytest-cov"],
-        "server": ["Flask", "Flask-Cors", "PyYAML"],
-        "api": ["openai"],
-        "deploy": ["firebase-functions"],
+        "develop": ["Flask", "Flask-Cors", "PyYAML", "openai", "firebase-functions"],
     },
 )
