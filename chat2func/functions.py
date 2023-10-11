@@ -219,6 +219,7 @@ def instantiate_type(py_type: type, value: Any, scope: Optional[Dict[str, Any]] 
     if hasattr(py_type, "__origin__"):
         origin = py_type.__origin__
         args = getattr(py_type, "__args__", None)
+        print("ARGS", args, origin, py_type, value)
 
         if origin is Union:
             for arg in args:

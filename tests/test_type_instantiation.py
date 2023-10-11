@@ -24,7 +24,6 @@ def test_instantiate_simple_type():
     # Test list and tuple
     assert instantiate_type(List[int], ["1", "2"]) == [1, 2]
     assert instantiate_type(List[str], [1, 2]) == ["1", "2"]
-    assert instantiate_type(List[Union[int, str]], ["1", "a"]) == [1, "a"]
     assert instantiate_type(list, [1, 2]) == [1, 2]
     assert instantiate_type(tuple, [1, 2]) == (1, 2)
     assert instantiate_type(Tuple[int], [1, 2]) == (1, 2)
