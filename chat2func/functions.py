@@ -203,6 +203,14 @@ def _get_outer_globals() -> Dict[str, Any]:
     return {}
 
 
+def _evaluate_forward_ref(ref: ForwardRef, scope: Dict[str, Any]):
+    if "recursive_guard" in inspect.signature(ForwardRef._evaluate).parameters:
+        kwds = {"recursive_guard": frozenset()}
+    else:
+        kwds = {}
+    return ref._evaluate(scope, None, **kwds)
+
+
 def instantiate_type(py_type: type, value: Any, scope: Optional[Dict[str, Any]] = None) -> Any:
     """Instantiate a python type from a json value.
 
@@ -223,7 +231,7 @@ def instantiate_type(py_type: type, value: Any, scope: Optional[Dict[str, Any]] 
 
     scope = scope or _get_outer_globals()
     if isinstance(py_type, ForwardRef):
-        py_type = py_type._evaluate(scope, {}, frozenset())
+        py_type = _evaluate_forward_ref(py_type, scope)
 
     try:
         return py_type(value)
@@ -291,7 +299,7 @@ def schema_to_type(
 
             try:
                 if isinstance(ptype, ForwardRef):
-                    ptype = ptype._evaluate(scope, {}, frozenset())
+                    ptype = _evaluate_forward_ref(ptype, scope)
 
                 if not isbuiltin(ptype) and (inspect.isclass(ptype) or inspect.isfunction(ptype)):
                     args, nested_kwargs = schema_to_type(ptype, arguments[name], scope, strict)

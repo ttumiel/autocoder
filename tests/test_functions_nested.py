@@ -42,7 +42,6 @@ def test_function():
 @pytest.fixture
 def test_recursive_function():
     def test(a: C) -> bool:
-        print(a, a.b)
         assert isinstance(a, C)
         assert isinstance(a.a, int)
         while a.b is not None:
