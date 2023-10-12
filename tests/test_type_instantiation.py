@@ -16,7 +16,7 @@ def test_instantiate_simple_type():
     assert instantiate_type(type(None), None) is None
 
     # Test Union and Optional types
-    assert instantiate_type(Union[int, str], "1") == 1
+    assert instantiate_type(Union[int, str], 1) == 1
     assert instantiate_type(Union[int, str], "a") == "a"
     assert instantiate_type(Optional[int], "1") == 1
     assert instantiate_type(Optional[int], None) is None
@@ -60,26 +60,33 @@ def test_instantiate_simple_type():
     with pytest.raises(ValueError):
         instantiate_type(type(None), "none")
 
+    with pytest.raises(ValueError):
+        instantiate_type(int, None)
+
     with pytest.raises(Exception):
         instantiate_type(Callable, "a")
 
 
 def test_instantiate_complex_types():
     # Test nested Union and Optional types
-    assert instantiate_type(Union[Optional[int], str], "1") == 1
+    assert instantiate_type(Union[Optional[int], str], "1") == "1"
+    assert instantiate_type(Union[Optional[int], str], 1) == 1
     assert instantiate_type(Union[Optional[int], str], None) is None
     assert instantiate_type(Union[Optional[int], str], "a") == "a"
 
     # Test nested list
     assert instantiate_type(List[List[int]], [["1", "2"], ["3", "4"]]) == [[1, 2], [3, 4]]
-    assert instantiate_type(List[Union[int, str]], ["1", "a"]) == [1, "a"]
+    assert instantiate_type(List[Union[int, str]], [1, "a"]) == [1, "a"]
 
     # Test nested dict
     assert instantiate_type(Dict[str, Dict[str, int]], {"a": {"b": "1"}, "c": {"d": "2"}}) == {
         "a": {"b": 1},
         "c": {"d": 2},
     }
-    assert instantiate_type(Dict[str, Union[int, str]], {"a": "1", "b": "b"}) == {"a": 1, "b": "b"}
+    assert instantiate_type(Dict[str, Union[int, str]], {"a": "1", "b": "b"}) == {
+        "a": "1",
+        "b": "b",
+    }
 
     # Test nested tuple
     assert instantiate_type(Tuple[int, Tuple[str, int]], ("1", ("a", "2"))) == (1, ("a", 2))
@@ -107,3 +114,6 @@ def test_instantiate_complex_types():
 
     with pytest.raises(ValueError):
         instantiate_type(Set[Set[int]], [{1, "a"}, {3, 4}])
+
+    with pytest.raises(ValueError):
+        print(instantiate_type(Union[Optional[int], float], {"a": 3}))

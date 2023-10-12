@@ -8,7 +8,18 @@ from collections import OrderedDict
 from contextlib import contextmanager
 from dataclasses import dataclass, field, is_dataclass
 from functools import partial, update_wrapper
-from typing import Any, Callable, Dict, ForwardRef, Optional, Set, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    ForwardRef,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+    get_args,
+    get_origin,
+)
 
 from docstring_parser import Docstring, parse
 from pydantic import BaseModel, TypeAdapter, validate_call
@@ -216,12 +227,14 @@ def instantiate_type(py_type: type, value: Any, scope: Optional[Dict[str, Any]] 
     except (ValueError, TypeError):
         logger.info("Type not directly instantiable", exc_info=True)
 
-    if hasattr(py_type, "__origin__"):
-        origin = py_type.__origin__
-        args = getattr(py_type, "__args__", None)
-        print("ARGS", args, origin, py_type, value)
+    origin = get_origin(py_type)
+    if origin:
+        args = get_args(py_type)
 
         if origin is Union:
+            if any((isinstance(arg, type) and isinstance(value, arg)) for arg in args):
+                return value
+
             for arg in args:
                 try:
                     return instantiate_type(arg, value, scope)
@@ -261,7 +274,7 @@ def schema_to_type(
     arguments: Dict[str, Any],
     scope: Optional[Dict[str, Any]] = None,
     strict: bool = True,
-) -> (list, dict):
+) -> Tuple[list, dict]:
     "Convert json objects to python function arguments."
 
     signature = inspect.signature(function)
