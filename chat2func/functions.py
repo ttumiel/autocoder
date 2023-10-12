@@ -112,7 +112,10 @@ class JsonSchema:
         self.descriptions = descriptions
         self.full_docstring = full_docstring
         self._cached_schema = None
-        self.name = function.__name__
+        self.name = getattr(function, "__name__", None)
+        if self.name is None and hasattr(function, "__func__"):
+            self.name = getattr(function.__func__, "__name__", None)
+
         update_wrapper(self, function)
 
     def __get__(self, obj, objtype=None):
@@ -179,7 +182,7 @@ def json_schema(
         ```
     """
     assert not hasattr(function, "json"), "Function already has a json attribute."
-    assert callable(function) or isinstance(function, classmethod), "`function` must be callable"
+    assert callable(function) or hasattr(function, "__get__"), "`function` must be callable"
 
     if function is None:
         return partial(JsonSchema, descriptions=descriptions, full_docstring=full_docstring)
