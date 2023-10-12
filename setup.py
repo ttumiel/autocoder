@@ -10,7 +10,7 @@ setup(
     packages=["chat2func"],
     license="MIT",
     install_requires=["docstring-parser", "pydantic"],
-    python_requires=">=3.7",
+    python_requires=">=3.8",
     url="https://github.com/ttumiel/chat2func",
     extras_require={
         "test": ["pytest", "black", "isort", "pytest-cov"],
