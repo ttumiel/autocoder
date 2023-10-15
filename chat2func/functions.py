@@ -182,7 +182,9 @@ def json_schema(
         ```
     """
     assert not hasattr(function, "json"), "Function already has a json attribute."
-    assert callable(function) or hasattr(function, "__get__"), "`function` must be callable"
+    assert (
+        function is None or callable(function) or hasattr(function, "__get__")
+    ), "`function` must be callable"
 
     if function is None:
         return partial(JsonSchema, descriptions=descriptions, full_docstring=full_docstring)
