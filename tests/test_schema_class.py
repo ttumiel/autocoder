@@ -17,6 +17,14 @@ class ClassSchema:
         "method description"
         return arg1 == int(arg2)
 
+    @json_schema(full_docstring=True)
+    def partial_method(self, arg1: int, arg2: str):
+        """method description
+
+        long description
+        """
+        return arg1 == int(arg2)
+
     @json_schema
     @staticmethod
     def static(arg1: int, arg2: str):
@@ -40,6 +48,19 @@ def test_class_schema_method(class_schema):
     assert class_schema.method.json == {
         "name": "method",
         "description": "method description",
+        "parameters": {
+            "type": "object",
+            "required": ["arg1", "arg2"],
+            "properties": {"arg1": {"type": "integer"}, "arg2": {"type": "string"}},
+        },
+    }
+
+
+def test_class_schema_partial_method(class_schema):
+    assert class_schema.partial_method(1, "1") is True
+    assert class_schema.partial_method.json == {
+        "name": "partial_method",
+        "description": "method description\nlong description",
         "parameters": {
             "type": "object",
             "required": ["arg1", "arg2"],
