@@ -121,7 +121,9 @@ class JsonSchema:
     def __get__(self, obj, objtype=None):
         # bind function to instance, and rewrap with schema
         bound_method = self.function.__get__(obj, objtype)
-        bound_schema = self.__class__(bound_method, descriptions=self.descriptions)
+        bound_schema = self.__class__(
+            bound_method, descriptions=self.descriptions, full_docstring=self.full_docstring
+        )
         if obj is None:
             return bound_schema
 
