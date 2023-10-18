@@ -9,7 +9,7 @@ setup(
     author="Thomas Tumiel",
     packages=["chat2func"],
     license="MIT",
-    install_requires=["docstring-parser", "pydantic"],
+    install_requires=["docstring-parser", "pydantic", "jsonschema"],
     python_requires=">=3.8",
     url="https://github.com/ttumiel/chat2func",
     extras_require={
