@@ -21,6 +21,7 @@ from typing import (
     get_origin,
 )
 
+import jsonschema
 from docstring_parser import Docstring, parse
 from pydantic import BaseModel, TypeAdapter, validate_call
 
@@ -341,7 +342,7 @@ def function_call(
     from_json: bool = True,
     return_json: bool = True,
     scope: Optional[Dict[str, Any]] = None,
-) -> str:
+) -> Union[str, object]:
     """Calls a function by name with a dictionary of arguments.
 
     Args:
@@ -366,19 +367,24 @@ def function_call(
 
     Raises:
         FunctionCallError: If the function call fails.
-    """
-    with function_call_error(f"Function {name} not found."):
-        function = functions[name]
 
-    if validate:
-        if isinstance(function, type):
-            logger.error("Cannot validate class calls.")
-        else:
-            function = validate_call(function)
+    Returns:
+        Union[str, object]: The result of the function call, as a JSON string if return_json=True.
+    """
+    with function_call_error(f"Function `{name}` not found."):
+        function = functions[name]
 
     if from_json:
         with function_call_error("Arguments are not valid JSON."):
             arguments = json.loads(arguments)
+
+    if validate:
+        with function_call_error("Arguments do not match the schema."):
+            schema = (
+                getattr(function, "json", None) or JsonSchema(function, descriptions=False).json
+            )
+            schema = schema["parameters"]
+            jsonschema.validate(arguments, schema)
 
     with function_call_error("Arguments do not match function signature."):
         args, kwargs = schema_to_type(function, arguments, scope=scope)
