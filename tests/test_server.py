@@ -1,6 +1,7 @@
 import json
 from dataclasses import dataclass
 
+from chat2func import json_schema
 from chat2func.server import FunctionServer
 
 
@@ -72,7 +73,7 @@ def test_server_with_args():
 
     rv = client.post("/foo", json={"a": 1, "b": 2.0})
     assert rv.status_code == 200
-    assert json.loads(rv.data)
+    assert json.loads(rv.data) == True
 
     rv = client.post("/foo", json={"a": False, "b": "test"})
     assert rv.status_code == 400
@@ -80,8 +81,78 @@ def test_server_with_args():
 
     rv = client.post("/bar", json={"b": False, "c": "test"})
     assert rv.status_code == 200
-    assert json.loads(rv.data)
+    assert json.loads(rv.data) == True
 
     rv = client.post("/bar", json={"a": 1, "b": 2.0})
     assert rv.status_code == 400
     assert "Error" in json.loads(rv.data)
+
+
+def test_decorated_function_server():
+    @json_schema
+    def foo(a: int, b: float):
+        "Create test objects."
+        return True
+
+    @json_schema
+    def bar(b: bool, c: str):
+        "Create test objects."
+        return True
+
+    client = make_client({"foo": foo, "bar": bar})
+
+    rv = client.post("/foo", json={"a": 1, "b": 2.0})
+    assert rv.status_code == 200
+    assert json.loads(rv.data) == True
+
+    rv = client.post("/foo", json={"a": False, "b": "test"})
+    assert rv.status_code == 400
+    resp = json.loads(rv.data)
+    assert "Error" in resp
+    assert resp["Error"].startswith("Arguments do not match the schema.")
+
+    rv = client.post("/bar", json={"b": False, "c": "test"})
+    assert rv.status_code == 200
+    assert json.loads(rv.data) == True
+
+    rv = client.post("/bar", json={"a": 1, "b": 2.0})
+    assert rv.status_code == 400
+    resp = json.loads(rv.data)
+    assert "Error" in resp
+    assert resp["Error"].startswith("Arguments do not match the schema.")
+
+
+def test_class_function_server():
+    class Functions:
+        @json_schema
+        def foo(self, a: int, b: float):
+            "Create test objects."
+            return True
+
+        @json_schema
+        def bar(self, b: bool, c: str):
+            "Create test objects."
+            return True
+
+    functions = Functions()
+    client = make_client({"foo": functions.foo, "bar": functions.bar})
+
+    rv = client.post("/foo", json={"a": 1, "b": 2.0})
+    assert rv.status_code == 200
+    assert json.loads(rv.data) == True
+
+    rv = client.post("/foo", json={"a": False, "b": "test"})
+    assert rv.status_code == 400
+    resp = json.loads(rv.data)
+    assert "Error" in resp
+    assert resp["Error"].startswith("Arguments do not match the schema.")
+
+    rv = client.post("/bar", json={"b": False, "c": "test"})
+    assert rv.status_code == 200
+    assert json.loads(rv.data) == True
+
+    rv = client.post("/bar", json={"a": 1, "b": 2.0})
+    assert rv.status_code == 400
+    resp = json.loads(rv.data)
+    assert "Error" in resp
+    assert resp["Error"].startswith("Arguments do not match the schema.")
