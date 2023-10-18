@@ -23,7 +23,8 @@ from typing import (
 
 import jsonschema
 from docstring_parser import Docstring, parse
-from pydantic import BaseModel, TypeAdapter, validate_call
+from pydantic import GetCoreSchemaHandler, TypeAdapter
+from pydantic_core import CoreSchema, core_schema
 
 logger = logging.getLogger(__name__)
 
@@ -61,13 +62,14 @@ def type_to_schema(py_type: type) -> Dict[str, str]:
     if py_type is inspect._empty:
         return {}
 
-    if inspect.isclass(py_type) and issubclass(py_type, BaseModel):
-        return py_type.model_json_schema()
-
-    if not isbuiltin(py_type) and (inspect.isclass(py_type) or inspect.isfunction(py_type)):
-        return parse_function_params(py_type)
-
-    return TypeAdapter(py_type).json_schema()
+    try:
+        schema = TypeAdapter(py_type, config={"title": None}).json_schema()
+        schema.pop("title", None)
+        return schema
+    except Exception as e:
+        if inspect.isclass(py_type) or inspect.isfunction(py_type):
+            return parse_function_params(py_type)
+        raise e
 
 
 def parse_function_params(function: Callable, descriptions: bool = True) -> dict:
@@ -107,8 +109,14 @@ def parse_function_params(function: Callable, descriptions: bool = True) -> dict
 
 class JsonSchema:
     def __init__(
-        self, function: Callable = None, *, descriptions: bool = True, full_docstring: bool = False
+        self,
+        function: Callable = None,
+        *,
+        descriptions: bool = True,
+        full_docstring: bool = False,
+        pydantic_schema: bool = True,
     ):
+        "See `json_schema` entrypoint for docs."
         self.function = function
         self.descriptions = descriptions
         self.full_docstring = full_docstring
@@ -116,6 +124,9 @@ class JsonSchema:
         self.name = getattr(function, "__name__", None)
         if self.name is None and hasattr(function, "__func__"):
             self.name = getattr(function.__func__, "__name__", None)
+
+        if pydantic_schema:
+            self.make_class_schema()
 
         update_wrapper(self, function)
 
@@ -158,9 +169,33 @@ class JsonSchema:
 
         return schema
 
+    def make_class_schema(self):
+        def __get_pydantic_core_schema__(
+            source_type: Any, handler: GetCoreSchemaHandler
+        ) -> CoreSchema:
+            def _from_dict(value: Dict[str, Any]):
+                return self.function(**value)
+
+            from_dict_schema = core_schema.chain_schema(
+                [
+                    core_schema.dict_schema(),
+                    core_schema.no_info_plain_validator_function(_from_dict),
+                ]
+            )
+
+            return core_schema.json_or_python_schema(
+                json_schema=from_dict_schema, python_schema=from_dict_schema
+            )
+
+        self.__get_pydantic_core_schema__ = __get_pydantic_core_schema__
+
 
 def json_schema(
-    function: Callable = None, *, descriptions: bool = True, full_docstring: bool = False
+    function: Callable = None,
+    *,
+    descriptions: bool = True,
+    full_docstring: bool = False,
+    pydantic_schema: bool = True,
 ):
     """Extracts the schema of a function into the .json attribute.
 
@@ -170,6 +205,8 @@ def json_schema(
             in the schema. Defaults to True.
         full_docstring (bool): Whether to include the full docstring description,
             or just the short_description (first line). Defaults to False.
+        pydantic_schema (bool): Whether to include the pydantic core schema classmethod
+            which allows pydantic instantiation of chat2func types. Defaults to True.
 
     Examples:
         ```
@@ -190,9 +227,19 @@ def json_schema(
     ), "`function` must be callable"
 
     if function is None:
-        return partial(JsonSchema, descriptions=descriptions, full_docstring=full_docstring)
+        return partial(
+            JsonSchema,
+            descriptions=descriptions,
+            full_docstring=full_docstring,
+            pydantic_schema=pydantic_schema,
+        )
 
-    return JsonSchema(function, descriptions=descriptions, full_docstring=full_docstring)
+    return JsonSchema(
+        function,
+        descriptions=descriptions,
+        full_docstring=full_docstring,
+        pydantic_schema=pydantic_schema,
+    )
 
 
 def _get_outer_globals() -> Dict[str, Any]:
@@ -293,6 +340,9 @@ def schema_to_type(
 ) -> Tuple[list, dict]:
     "Convert json objects to python function arguments."
 
+    if isinstance(function, JsonSchema):
+        function = function.function
+
     signature = inspect.signature(function)
     scope = scope or _get_outer_globals()
     for name, parameter in signature.parameters.items():
@@ -306,11 +356,22 @@ def schema_to_type(
                 if isinstance(ptype, ForwardRef):
                     ptype = _evaluate_forward_ref(ptype, scope)
 
-                if not isbuiltin(ptype) and (inspect.isclass(ptype) or inspect.isfunction(ptype)):
-                    args, nested_kwargs = schema_to_type(ptype, arguments[name], scope, strict)
-                    arguments[name] = ptype(*args, **nested_kwargs)
-                else:
-                    arguments[name] = instantiate_type(ptype, arguments[name], scope)
+                try:  # First try to instantiate directly with pydantic
+                    schema = TypeAdapter(ptype)
+                    arguments[name] = schema.validate_python(arguments[name])
+
+                except Exception as e:
+                    # If that fails and it's a class/function, instantiate that
+                    if inspect.isclass(ptype) or inspect.isfunction(ptype):
+                        args, nested_kwargs = schema_to_type(ptype, arguments[name], scope, strict)
+                        arguments[name] = ptype(*args, **nested_kwargs)
+
+                    else:  # Otherwise try to instantiate basic types directly
+                        try:
+                            arguments[name] = instantiate_type(ptype, arguments[name], scope)
+                        except Exception as e:
+                            logger.error("TyperAdapter and instantiate_type failed", exc_info=True)
+                            raise e
 
             except Exception as e:
                 if strict:
