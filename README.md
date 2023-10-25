@@ -41,10 +41,14 @@ print(my_function.json)
 
 {'description': 'This is a sample function.',
  'name': 'my_function',
- 'parameters': {'properties': {'x': {'description': 'The first float.', 'type': 'number'},
-                               'y': {'description': 'Another float.', 'type': 'number'}},
+ 'parameters': {'properties': {'x': {'description': 'The first float.',
+                                     'type': 'number'},
+                               'y': {'description': 'Another float.',
+                                     'type': 'number'}},
                 'required': ['x', 'y'],
-                'type': 'object'}}
+                'type': 'object'},
+ 'responses': {'200': {'content': {'application/json': {'schema': {'type': 'boolean'}}},
+                       'description': 'OK'}}}
 ```
 
 ## JSON Schema
@@ -63,7 +67,7 @@ class Data:
 
 print(Data.json)
 {'name': 'Data',
- 'parameters': {'type': 'object', 'properties': {'a': {'type': 'integer'}}}}
+ 'parameters': {'type': 'object', 'properties': {'a': {'type': 'integer', "default": 0}}}}
 ```
 
 
@@ -129,7 +133,7 @@ print(result) # 3.0
 # We can optionally validate the function arguments too. Defaults to on.
 arguments = json.dumps({"x": "a", "y": 2.0})
 result = function_call("plusplus", arguments, functions)
-# FunctionCallError: Function call failed. 1 validation error for plusplus
+# FunctionCallError: Arguments do not match the schema. 'a' is not of type 'number'
 ```
 
 ### Using OpenAI's Function Calling API
