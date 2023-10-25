@@ -69,12 +69,15 @@ def request_handler(fn=None, allow_cors=True):
         return functools.partial(request_handler, allow_cors=allow_cors)
 
     @https_fn.on_request(
-        cors=options.CorsOptions(cors_origins=[r"*"], cors_methods=["get", "post"])
+        cors=options.CorsOptions(cors_origins=[r"*"], cors_methods=["get", "post"]),
+        memory=options.MemoryOption.MB_256,
+        region=options.SupportedRegion.US_WEST1,
+        cpu=1,
     )
     @functools.wraps(fn)
     def thunk(request: https_fn.Request):
         try:
-            args = request.json if request.method == "POST" and request.is_json else {}
+            args = request.json if request.is_json else {}
             result = function_call("fn", args, {"fn": fn}, validate=True, from_json=False)
             return https_fn.Response(result, mimetype="application/json")
         except Exception as e:
