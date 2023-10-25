@@ -100,9 +100,15 @@ def parse_function_params(function: Callable, descriptions: bool = True) -> dict
         # Include the description
         if descriptions and doc_param.description:
             desc = doc_param.description
-            if "default" not in desc.lower() and sig_param.default is not inspect._empty:
-                desc += " (default: {})".format(sig_param.default)
             schema["properties"][name]["description"] = desc
+
+        if sig_param.default is not inspect._empty:
+            if isinstance(sig_param.default, annotation):
+                schema["properties"][name]["default"] = sig_param.default
+            else:
+                logger.warning(
+                    f"Default value `{sig_param.default}` does not match annotation `{annotation}`"
+                )
 
     return schema
 
