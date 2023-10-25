@@ -107,6 +107,42 @@ def parse_function_params(function: Callable, descriptions: bool = True) -> dict
     return schema
 
 
+def parse_function_responses(function: Callable, descriptions: bool = True) -> Optional[dict]:
+    "Generate a json schema of a function's responses."
+    signature = inspect.signature(function)
+    returns = parse(inspect.getdoc(function)).returns
+
+    return_type = signature.return_annotation
+    if return_type is inspect._empty:
+        return_type = getattr(returns, "type_name", None)
+        if return_type is None:
+            return_type = inspect._empty
+
+    if inspect.isclass(function):
+        return_type = inspect._empty
+
+    try:
+        return_schema = type_to_schema(return_type)
+    except:
+        logger.error(f"Failed to generate return schema for {function.__name__}", exc_info=True)
+        return_schema = None
+
+    description = getattr(returns, "description", None)
+    response = {}
+    if return_schema:
+        response["content"] = {"application/json": {"schema": return_schema}}
+
+    # If there's a schema we need at least a minimal description of OK
+    # Otherwise avoid a description if `descriptions=False`
+    if (description and descriptions) or return_schema:
+        if not descriptions:
+            description = "OK"
+        response["description"] = description or "OK"
+
+    if response:
+        return {"200": response}
+
+
 class JsonSchema:
     def __init__(
         self,
@@ -114,12 +150,14 @@ class JsonSchema:
         *,
         descriptions: bool = True,
         full_docstring: bool = False,
+        responses_schema: bool = True,
         pydantic_schema: bool = True,
     ):
         "See `json_schema` entrypoint for docs."
         self.function = function
         self.descriptions = descriptions
         self.full_docstring = full_docstring
+        self.responses_schema = responses_schema
         self._cached_schema = None
         self.name = getattr(function, "__name__", None)
         if self.name is None and hasattr(function, "__func__"):
@@ -134,7 +172,11 @@ class JsonSchema:
         # bind function to instance, and rewrap with schema
         bound_method = self.function.__get__(obj, objtype)
         bound_schema = self.__class__(
-            bound_method, descriptions=self.descriptions, full_docstring=self.full_docstring
+            bound_method,
+            descriptions=self.descriptions,
+            full_docstring=self.full_docstring,
+            responses_schema=self.responses_schema,
+            pydantic_schema=False,
         )
         if obj is None:
             return bound_schema
@@ -156,6 +198,10 @@ class JsonSchema:
         schema = {}
         schema["name"] = self.function.__name__
         schema["parameters"] = parse_function_params(self.function, self.descriptions)
+        if self.responses_schema:
+            responses = parse_function_responses(self.function, self.descriptions)
+            if responses:
+                schema["responses"] = responses
 
         if self.descriptions:
             docstring = parse(inspect.getdoc(self.function))
@@ -195,6 +241,7 @@ def json_schema(
     *,
     descriptions: bool = True,
     full_docstring: bool = False,
+    responses_schema: bool = True,
     pydantic_schema: bool = True,
 ):
     """Extracts the schema of a function into the .json attribute.
@@ -205,6 +252,7 @@ def json_schema(
             in the schema. Defaults to True.
         full_docstring (bool): Whether to include the full docstring description,
             or just the short_description (first line). Defaults to False.
+        responses_schema (bool): Whether to include the responses schema. Defaults to True.
         pydantic_schema (bool): Whether to include the pydantic core schema classmethod
             which allows pydantic instantiation of chat2func types. Defaults to True.
 
@@ -231,6 +279,7 @@ def json_schema(
             JsonSchema,
             descriptions=descriptions,
             full_docstring=full_docstring,
+            responses_schema=responses_schema,
             pydantic_schema=pydantic_schema,
         )
 
@@ -238,6 +287,7 @@ def json_schema(
         function,
         descriptions=descriptions,
         full_docstring=full_docstring,
+        responses_schema=responses_schema,
         pydantic_schema=pydantic_schema,
     )
 

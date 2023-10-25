@@ -20,19 +20,22 @@ def function_with_docstring(arg1, arg2):
         arg1 (int): First argument
         arg2 (str): Second argument
 
-    Returns: True if equivalent
+    Returns:
+        True if equivalent
     """
     return arg1 == int(arg2)
 
 
-def function_with_docstring_and_types(arg1: int, arg2: str) -> bool:
+def function_with_docstring_and_types(arg1: int, arg2: str, arg3: float = 0.0) -> bool:
     """Tests for equivalence
 
     Args:
         arg1 (int): First argument
         arg2 (str): Second argument
+        arg3 (float, optional): Third argument
 
-    Returns: True if equivalent
+    Returns:
+        True if equivalent
     """
     return arg1 == int(arg2)
 
@@ -75,6 +78,12 @@ class NestedClass:
                     "required": ["arg1", "arg2"],
                     "properties": {"arg1": {"type": "integer"}, "arg2": {"type": "string"}},
                 },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {"application/json": {"schema": {"type": "boolean"}}},
+                    }
+                },
             },
         ),
         (
@@ -91,6 +100,7 @@ class NestedClass:
                         "arg2": {"type": "string", "description": "Second argument"},
                     },
                 },
+                "responses": {"200": {"description": "True if equivalent"}},
             },
         ),
         (
@@ -105,7 +115,14 @@ class NestedClass:
                     "properties": {
                         "arg1": {"type": "integer", "description": "First argument"},
                         "arg2": {"type": "string", "description": "Second argument"},
+                        "arg3": {"type": "number", "description": "Third argument", "default": 0.0},
                     },
+                },
+                "responses": {
+                    "200": {
+                        "description": "True if equivalent",
+                        "content": {"application/json": {"schema": {"type": "boolean"}}},
+                    }
                 },
             },
         ),
@@ -121,7 +138,7 @@ class NestedClass:
                     "properties": {
                         "a": {"type": "integer"},
                         "b": {"type": "string"},
-                        "c": {"type": "boolean"},
+                        "c": {"type": "boolean", "default": False},
                     },
                 },
             },
@@ -134,13 +151,13 @@ class NestedClass:
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "a": {"type": "integer"},
+                        "a": {"type": "integer", "default": 0},
                         "b": {
                             "type": "object",
                             "properties": {
                                 "a": {"type": "integer"},
                                 "b": {"type": "string"},
-                                "c": {"type": "boolean"},
+                                "c": {"type": "boolean", "default": False},
                             },
                             "required": ["a", "b"],
                         },
