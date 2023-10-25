@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional, Sequence
 import pytest
 
 from chat2func import FunctionCallError, function_call, json_schema
-from chat2func.functions import schema_to_type
+from chat2func.schema import schema_to_type
 
 
 class ClassTest:

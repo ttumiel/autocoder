@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Callable, Dict, List, Optional
 
-from .functions import FunctionCallError, function_call, json_schema
+from .schema import FunctionCallError, function_call, json_schema
 
 try:
     from IPython.display import HTML, display

@@ -2,7 +2,7 @@ from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
 
 import pytest
 
-from chat2func.functions import instantiate_type
+from chat2func.schema import instantiate_type
 
 
 def test_instantiate_simple_type():
@@ -116,4 +116,4 @@ def test_instantiate_complex_types():
         instantiate_type(Set[Set[int]], [{1, "a"}, {3, 4}])
 
     with pytest.raises(ValueError):
-        print(instantiate_type(Union[Optional[int], float], {"a": 3}))
+        instantiate_type(Union[Optional[int], float], {"a": 3})

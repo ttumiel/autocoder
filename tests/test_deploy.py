@@ -4,7 +4,7 @@ from math import cos, sin, tan
 import pytest
 
 from chat2func.deploy import generate_imports_and_sources
-from chat2func.functions import json_schema
+from chat2func.schema import json_schema
 
 
 def my_function1():
@@ -26,7 +26,7 @@ def my_function2():
         ),
         ([my_function1, my_function2], "", set(["my_function1", "my_function2"])),
         ([sin, cos, tan], "from math import cos, sin, tan", set()),
-        ([json_schema], "from chat2func.functions import json_schema", set()),
+        ([json_schema], "from chat2func.schema import json_schema", set()),
         ([], "", set()),
     ],
 )
@@ -49,7 +49,7 @@ def test_generate_imports_and_sources(func_list, expected_imports, expected_inli
         ),
         (
             [json_schema],
-            "from chat2func.functions import json_schema as json_schema_definition",
+            "from chat2func.schema import json_schema as json_schema_definition",
             set(),
         ),
     ],

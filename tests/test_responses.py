@@ -1,4 +1,4 @@
-from chat2func.functions import parse_function_responses
+from chat2func.schema import parse_function_responses
 
 
 def test_no_annotation_no_doc():

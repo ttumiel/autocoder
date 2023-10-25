@@ -7,7 +7,7 @@ from functools import wraps
 from pathlib import Path
 from typing import Callable, Dict
 
-from .functions import function_call, json_schema
+from .schema import function_call, json_schema
 
 try:
     import yaml

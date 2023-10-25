@@ -1,4 +1,4 @@
-from .functions import (
+from .schema import (
     FunctionCallError,
     collect_functions,
     function_call,

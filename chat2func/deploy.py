@@ -3,7 +3,7 @@ import traceback
 from collections import defaultdict
 from typing import Callable, List, Optional, Set, Tuple
 
-from .functions import function_call
+from .schema import function_call
 
 try:
     from firebase_functions import https_fn, options
