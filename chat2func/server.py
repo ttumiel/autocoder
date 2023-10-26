@@ -33,7 +33,7 @@ class FunctionServer:
         self.plugin_routes()
 
     def create_route(self, route, func, validate=True):
-        schema = getattr(func, "json", None) or json_schema(func).json
+        schema = getattr(func, "__schema__", None) or json_schema(func).__schema__
         self.functions[route] = func
         self.schemas[route] = schema
 

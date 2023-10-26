@@ -170,4 +170,7 @@ class NestedClass:
     ],
 )
 def test_json_schema(function, parse_description, expected):
-    assert json_schema(function, descriptions=parse_description, full_docstring=True).json == expected
+    assert (
+        json_schema(function, descriptions=parse_description, full_docstring=True).__schema__
+        == expected
+    )

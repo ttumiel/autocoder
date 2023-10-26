@@ -53,7 +53,7 @@ def test_rest_doc(docstring):
 
     example_function.__doc__ = docstring
 
-    assert json_schema(example_function).json == {
+    assert json_schema(example_function).__schema__ == {
         "name": "example_function",
         "description": "desc",
         "parameters": {

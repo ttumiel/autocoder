@@ -1,10 +1,4 @@
-from .schema import (
-    FunctionCallError,
-    collect_functions,
-    function_call,
-    json_schema,
-    type_to_schema,
-)
+from .schema import FunctionCallError, collect_functions, function_call, json_schema, type_to_schema
 
 __all__ = [
     "collect_functions",

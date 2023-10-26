@@ -34,10 +34,10 @@ def my_function(x: float, y: float) -> bool:
     return x > y
 ```
 
-After this, `my_function` will have an additional `.json` attribute containing its JSON schema.
+After this, `my_function` will have an additional `.__schema__` attribute containing its JSON schema.
 
 ```python
-print(my_function.json)
+print(my_function.__schema__)
 
 {'description': 'This is a sample function.',
  'name': 'my_function',
@@ -65,7 +65,7 @@ You can generate a JSON schema from any type of callable: classes, functions, or
 class Data:
     a: int = 0
 
-print(Data.json)
+print(Data.__schema__)
 {'name': 'Data',
  'parameters': {'type': 'object', 'properties': {'a': {'type': 'integer', "default": 0}}}}
 ```

@@ -92,7 +92,7 @@ def test_add_schema():
     functions = collect_functions(locals(), add_schema=True)
     assert "fn" in functions
     assert len(functions) == 1
-    assert hasattr(functions["fn"], "json")
+    assert hasattr(functions["fn"], "__schema__")
 
 
 @dataclass

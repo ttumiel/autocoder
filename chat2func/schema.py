@@ -198,7 +198,7 @@ class JsonSchema:
         return getattr(self._function, name)
 
     @property
-    def json(self):
+    def __schema__(self):
         if self._cached_schema is None:
             self._cached_schema = self._make_schema()
         return self._cached_schema
@@ -253,7 +253,7 @@ def json_schema(
     responses_schema: bool = True,
     pydantic_schema: bool = True,
 ):
-    """Extracts the schema of a function into the .json attribute.
+    """Extracts the schema of a function into the `.__schema__` attribute.
 
     Args:
         function (Callable): The function to extract the schema from.
@@ -268,17 +268,17 @@ def json_schema(
     Examples:
         ```
         @json_schema
-        def test(a: int) -> bool:
+        def test(a: int):
             "description"
 
-        test.json == {
+        test.__schema__ == {
             "name": "test",
             "description": "description",
             "parameters": {"required": ["a"], "a": {"type": "int"}}
         }
         ```
     """
-    assert not hasattr(function, "json"), "Function already has a json attribute."
+    assert not hasattr(function, "__schema__"), "Function already has a __schema__ attribute."
     assert (
         function is None or callable(function) or hasattr(function, "__get__")
     ), "`function` must be callable"
@@ -501,7 +501,8 @@ def function_call(
     if validate:
         with function_call_error("Arguments do not match the schema."):
             schema = (
-                getattr(function, "json", None) or JsonSchema(function, descriptions=False).json
+                getattr(function, "__schema__", None)
+                or JsonSchema(function, descriptions=False).__schema__
             )
             schema = schema["parameters"]
             jsonschema.validate(arguments, schema)

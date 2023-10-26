@@ -45,7 +45,7 @@ def class_schema():
 
 def test_class_schema_method(class_schema):
     assert class_schema.method(1, "1") is True
-    assert class_schema.method.json == {
+    assert class_schema.method.__schema__ == {
         "name": "method",
         "description": "method description",
         "parameters": {
@@ -58,7 +58,7 @@ def test_class_schema_method(class_schema):
 
 def test_class_schema_partial_method(class_schema):
     assert class_schema.partial_method(1, "1") is True
-    assert class_schema.partial_method.json == {
+    assert class_schema.partial_method.__schema__ == {
         "name": "partial_method",
         "description": "method description\nlong description",
         "parameters": {
@@ -71,7 +71,7 @@ def test_class_schema_partial_method(class_schema):
 
 def test_class_schema_static(class_schema):
     assert class_schema.static(1, "1") is True
-    assert class_schema.static.json == {
+    assert class_schema.static.__schema__ == {
         "name": "static",
         "description": "static description",
         "parameters": {
@@ -82,7 +82,7 @@ def test_class_schema_static(class_schema):
     }
 
     assert ClassSchema.static(1, "1") is True
-    assert ClassSchema.static.json == {
+    assert ClassSchema.static.__schema__ == {
         "name": "static",
         "description": "static description",
         "parameters": {
@@ -96,7 +96,7 @@ def test_class_schema_static(class_schema):
 def test_class_schema_classmethod(class_schema):
     assert isinstance(class_schema.classmethod(1, "1"), ClassSchema)
     assert isinstance(ClassSchema.classmethod(1, "1"), ClassSchema)
-    assert class_schema.classmethod.json == {
+    assert class_schema.classmethod.__schema__ == {
         "name": "classmethod",
         "description": "classmethod description",
         "parameters": {

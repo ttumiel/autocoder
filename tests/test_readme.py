@@ -17,7 +17,7 @@ def test_quickstart():
         """
         return x > y
 
-    assert my_function.json == {
+    assert my_function.__schema__ == {
         "description": "This is a sample function.",
         "name": "my_function",
         "parameters": {
@@ -41,7 +41,7 @@ def test_quickstart():
     class Data:
         a: int = 0
 
-    assert Data.json == {
+    assert Data.__schema__ == {
         "name": "Data",
         "parameters": {"type": "object", "properties": {"a": {"type": "integer", "default": 0}}},
     }

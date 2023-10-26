@@ -83,7 +83,8 @@ class FunctionCallingAPI:
         self.functions = functions or {}
         self.model = model
         self.schemas = [
-            getattr(f, "json", None) or json_schema(f).json for name, f in functions.items()
+            getattr(f, "__schema__", None) or json_schema(f).__schema__
+            for name, f in functions.items()
         ]
 
         sys_prompt = (sys_prompt or SYSTEM_PROMPT).format(functions=", ".join(functions.keys()))
