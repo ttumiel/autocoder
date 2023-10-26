@@ -14,7 +14,9 @@ def function_with_types(arg1: int, arg2: str) -> bool:
 
 
 def function_with_docstring(arg1, arg2):
-    """Tests for equivalence
+    """Tests for equivalence. More description.
+
+    Long description.
 
     Args:
         arg1 (int): First argument
@@ -91,7 +93,7 @@ class NestedClass:
             True,
             {
                 "name": "function_with_docstring",
-                "description": "Tests for equivalence",
+                "description": "Tests for equivalence. More description.\nLong description.",
                 "parameters": {
                     "type": "object",
                     "required": ["arg1", "arg2"],
@@ -168,4 +170,4 @@ class NestedClass:
     ],
 )
 def test_json_schema(function, parse_description, expected):
-    assert json_schema(function, descriptions=parse_description).json == expected
+    assert json_schema(function, descriptions=parse_description, full_docstring=True).json == expected
