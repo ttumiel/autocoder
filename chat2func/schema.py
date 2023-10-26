@@ -160,60 +160,63 @@ class JsonSchema:
         pydantic_schema: bool = True,
     ):
         "See `json_schema` entrypoint for docs."
-        self.function = function
-        self.descriptions = descriptions
-        self.full_docstring = full_docstring
-        self.responses_schema = responses_schema
+        self._function = function
+        self._descriptions = descriptions
+        self._full_docstring = full_docstring
+        self._responses_schema = responses_schema
         self._cached_schema = None
-        self.name = getattr(function, "__name__", None)
-        if self.name is None and hasattr(function, "__func__"):
-            self.name = getattr(function.__func__, "__name__", None)
+        self._name = getattr(function, "__name__", None)
+        if self._name is None and hasattr(function, "__func__"):
+            self._name = getattr(function.__func__, "__name__", None)
 
         if pydantic_schema:
-            self.make_class_schema()
+            self._make_class_schema()
 
         update_wrapper(self, function)
 
     def __get__(self, obj, objtype=None):
         # bind function to instance, and rewrap with schema
-        bound_method = self.function.__get__(obj, objtype)
+        bound_method = self._function.__get__(obj, objtype)
         bound_schema = self.__class__(
             bound_method,
-            descriptions=self.descriptions,
-            full_docstring=self.full_docstring,
-            responses_schema=self.responses_schema,
+            descriptions=self._descriptions,
+            full_docstring=self._full_docstring,
+            responses_schema=self._responses_schema,
             pydantic_schema=False,
         )
         if obj is None:
             return bound_schema
 
         # cache method
-        obj.__dict__[self.name] = bound_schema
-        return obj.__dict__[self.name]
+        obj.__dict__[self._name] = bound_schema
+        return obj.__dict__[self._name]
 
     def __call__(self, *args, **kwds):
-        return self.function(*args, **kwds)
+        return self._function(*args, **kwds)
+
+    def __getattr__(self, name):
+        return getattr(self._function, name)
 
     @property
     def json(self):
         if self._cached_schema is None:
-            self._cached_schema = self.make_schema()
+            self._cached_schema = self._make_schema()
         return self._cached_schema
 
-    def make_schema(self):
+    def _make_schema(self):
         schema = {}
-        schema["name"] = self.function.__name__
-        schema["parameters"] = parse_function_params(self.function, self.descriptions)
-        if self.responses_schema:
-            responses = parse_function_responses(self.function, self.descriptions)
+        schema["name"] = self._function.__name__
+        schema["parameters"] = parse_function_params(self._function, self._descriptions)
+        if self._responses_schema:
+            responses = parse_function_responses(self._function, self._descriptions)
             if responses:
                 schema["responses"] = responses
 
-        if self.descriptions:
-            docstring = parse(inspect.getdoc(self.function))
+        if self._descriptions:
+            docstring = parse(inspect.getdoc(self._function))
             desc = docstring.short_description or ""
 
-            if self.full_docstring and docstring.long_description:
+            if self._full_docstring and docstring.long_description:
                 desc += "\n" + docstring.long_description
 
             if desc:
@@ -221,12 +224,12 @@ class JsonSchema:
 
         return schema
 
-    def make_class_schema(self):
+    def _make_class_schema(self):
         def __get_pydantic_core_schema__(
             source_type: Any, handler: GetCoreSchemaHandler
         ) -> CoreSchema:
             def _from_dict(value: Dict[str, Any]):
-                return self.function(**value)
+                return self._function(**value)
 
             from_dict_schema = core_schema.chain_schema(
                 [
@@ -397,7 +400,7 @@ def schema_to_type(
     "Convert json objects to python function arguments."
 
     if isinstance(function, JsonSchema):
-        function = function.function
+        function = function._function
 
     signature = inspect.signature(function)
     scope = scope or _get_outer_globals()

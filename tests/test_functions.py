@@ -138,7 +138,7 @@ def test_pydantic_schema():
     def f(a: Sequence[PydanticSchemaTest]):
         return a[0]
 
-    unwrapped_type = PydanticSchemaTest.function
+    unwrapped_type = PydanticSchemaTest._function
     args, kwargs = schema_to_type(f, {"a": [{"a": 1}]})
     assert len(args) == 1
     assert isinstance(args[0][0], unwrapped_type)
