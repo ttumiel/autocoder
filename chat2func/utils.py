@@ -1,8 +1,11 @@
-def approx_token_count(text: str):
+from .api import ChatModel
+
+
+def approx_token_count(text: str, model: str = ChatModel.GPT4.value):
     try:
         import tiktoken
 
-        enc = tiktoken.get_encoding("cl100k_base")
-        return len(enc.encode(text))
+        encoding = tiktoken.encoding_for_model(model)
+        return len(encoding.encode(text))
     except ImportError:
-        return round(1.4 * len(text.split()))
+        return round(1.35 * len(text.split()))
