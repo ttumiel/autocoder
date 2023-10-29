@@ -3,12 +3,13 @@
 import inspect
 import logging
 from collections import OrderedDict
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, is_dataclass
 from functools import partial, update_wrapper
 from typing import Any, Callable, Dict, ForwardRef, Optional, Tuple, Union, get_args, get_origin
 
 from docstring_parser import Docstring, parse
 from pydantic import GetCoreSchemaHandler, TypeAdapter
+from pydantic.json_schema import GenerateJsonSchema
 from pydantic_core import CoreSchema, core_schema
 
 logger = logging.getLogger(__name__)
@@ -20,6 +21,11 @@ class Parameter:
     description: Optional[str] = None
     default: Optional[Any] = field(default_factory=lambda: inspect._empty)
     annotation: Optional[type] = field(default_factory=lambda: inspect._empty)
+
+
+class SchemaGenerator(GenerateJsonSchema):
+    def field_title_should_be_set(self, schema) -> bool:
+        return False
 
 
 def docstring_to_params(docstring: Docstring) -> Dict[str, Parameter]:
@@ -44,11 +50,14 @@ def type_to_schema(py_type: type) -> Dict[str, str]:
         return {}
 
     try:
-        schema = TypeAdapter(py_type, config={"title": None}).json_schema()
+        if is_dataclass(py_type):
+            return parse_function_params(py_type)
+
+        schema = TypeAdapter(py_type).json_schema(schema_generator=SchemaGenerator)
         schema.pop("title", None)
         return schema
     except Exception as e:
-        if inspect.isclass(py_type) or inspect.isfunction(py_type):
+        if not isbuiltin(py_type) and (inspect.isclass(py_type) or inspect.isfunction(py_type)):
             return parse_function_params(py_type)
         raise e
 

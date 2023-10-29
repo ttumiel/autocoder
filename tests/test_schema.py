@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 
 import pytest
+from typing_extensions import TypedDict
 
 from chat2func import json_schema
 
@@ -53,6 +54,22 @@ class SimpleClass:
 class NestedClass:
     a: int = 0
     b: SimpleClass = field(default_factory=lambda: SimpleClass(0, "a"))
+
+
+class TDict(TypedDict, total=False):
+    a: str
+    b: str
+
+
+def from_dict(v: TDict) -> bool:
+    assert isinstance(v, TDict)
+    assert isinstance(v.get("a", ""), str)
+    assert isinstance(v.get("b", ""), str)
+    return True
+
+
+def to_dict(a: str, b: str) -> TDict:
+    return {"a": a, "b": b}
 
 
 @pytest.mark.parametrize(
@@ -164,6 +181,57 @@ class NestedClass:
                             "required": ["a", "b"],
                         },
                     },
+                },
+            },
+        ),
+        (
+            from_dict,
+            False,
+            {
+                "name": "from_dict",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "v": {
+                            "type": "object",
+                            "properties": {"a": {"type": "string"}, "b": {"type": "string"}},
+                        }
+                    },
+                    "required": ["v"],
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {"application/json": {"schema": {"type": "boolean"}}},
+                    }
+                },
+            },
+        ),
+        (
+            to_dict,
+            False,
+            {
+                "name": "to_dict",
+                "parameters": {
+                    "type": "object",
+                    "properties": {"a": {"type": "string"}, "b": {"type": "string"}},
+                    "required": ["a", "b"],
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "a": {"type": "string"},
+                                        "b": {"type": "string"},
+                                    },
+                                }
+                            }
+                        },
+                    }
                 },
             },
         ),
