@@ -188,7 +188,7 @@ def build_openapi_spec(schemas: Dict[str, dict]) -> dict:
                     "required": True,
                     "content": {"application/json": {"schema": schema["parameters"]}},
                 },
-                "responses": {"200": {"description": "OK"}},
+                "responses": schema.get("responses", {"200": {"description": "OK"}}),
             }
         }
 
