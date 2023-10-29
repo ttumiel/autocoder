@@ -4,6 +4,7 @@ import inspect
 import logging
 from collections import OrderedDict
 from dataclasses import dataclass, field, is_dataclass
+from enum import Enum
 from functools import partial, update_wrapper
 from typing import Any, Callable, Dict, ForwardRef, Optional, Tuple, Union, get_args, get_origin
 
@@ -82,7 +83,8 @@ def parse_function_params(function: Callable, descriptions: bool = True) -> dict
         schema["properties"][name] = type_to_schema(annotation)
 
         # Check if required
-        if sig_param.default is inspect._empty:
+        default = sig_param.default
+        if default is inspect._empty:
             if "required" not in schema:
                 schema["required"] = []
             schema["required"].append(name)
@@ -92,12 +94,14 @@ def parse_function_params(function: Callable, descriptions: bool = True) -> dict
             desc = doc_param.description
             schema["properties"][name]["description"] = desc
 
-        if sig_param.default is not inspect._empty and annotation is not inspect._empty:
-            if isinstance(sig_param.default, annotation):
-                schema["properties"][name]["default"] = sig_param.default
+        if default is not inspect._empty and annotation is not inspect._empty:
+            if isinstance(default, annotation):
+                if isinstance(default, Enum):
+                    default = default.value
+                schema["properties"][name]["default"] = default
             else:
                 logger.warning(
-                    f"Default value `{sig_param.default}` does not match annotation `{annotation}`"
+                    f"Default value `{default}` does not match annotation `{annotation} in {function.__name__}`"
                 )
 
     return schema
@@ -201,6 +205,10 @@ class JsonSchema:
             responses = parse_function_responses(self._function, self._descriptions)
             if responses:
                 schema["responses"] = responses
+            else:
+                logger.warning(
+                    f"Failed to generate responses schema for {self._function.__name__}\n{responses}"
+                )
 
         if self._descriptions:
             docstring = parse(inspect.getdoc(self._function))
