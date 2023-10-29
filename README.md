@@ -111,28 +111,24 @@ Don't forget to update the urls in `ai-plugin.json` once you've deployed.
 
 ## Calling Functions with JSON Arguments
 
-`function_call` provides additional functionality for calling functions with JSON arguments. It automatically converts JSON arguments to Python objects and returns the result as JSON. It validates the JSON, raising `FunctionCallError` if something is unexpected.
+`function_call` provides additional functionality for calling and validating functions with JSON arguments. It also validates the function call, raising `FunctionCallError` if something is unexpected.
 
 ```python
 import json
-from chat2func import function_call, collect_functions
+from chat2func import function_call
 
-def plusplus(x: float, y: float) -> float:
+def addition(x: float, y: float) -> float:
     "Add two floats."
     return x + y
 
-# Specify the available functions.
-# You can also use `collect_functions` to collect all functions within a scope.
-functions = {"plusplus": plusplus}
-
 # Arguments are passed as a JSON string.
 arguments = json.dumps({"x": 1.0, "y": 2.0})
-result = function_call("plusplus", arguments, functions)
+result = function_call(addition, arguments)
 print(result) # 3.0
 
 # We can optionally validate the function arguments too. Defaults to on.
 arguments = json.dumps({"x": "a", "y": 2.0})
-result = function_call("plusplus", arguments, functions)
+result = function_call(addition, arguments)
 # FunctionCallError: Arguments do not match the schema. 'a' is not of type 'number'
 ```
 
@@ -143,7 +139,7 @@ result = function_call("plusplus", arguments, functions)
 We can use the function calling API directly too. Here we demonstrate using ChatGPT to generate structured data (in the form of dataclasses) from unstructured knowledge about the book _Dune_.
 
 ```python
-from chat2func import function_call
+from chat2func import function_calls
 from chat2func.api import FunctionCallingAPI, Role
 
 @json_schema
@@ -166,7 +162,7 @@ for _ in range(5):
     # Call the function (and validate the inputs!)
     fn_name = message.function_call["name"]
     args = message.function_call["arguments"]
-    result = function_call(fn_name, args, functions, return_json=False)
+    result = function_calls(fn_name, functions, args, return_json=False)
 
     # Add the result to the chat
     api.chat.add_message(Role.FUNCTION.value, str(result), name="character")
@@ -178,3 +174,8 @@ for _ in range(5):
 # Character(name='Lady Jessica', age=36, house='Atreides')
 # Character(name='Paul Atreides', age=15, house='Atreides')
 ```
+
+
+## Contributing
+
+I'm happy to accept contributions! Please open an issue or pull request if you have any ideas or find any bugs.

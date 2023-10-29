@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Callable, Dict, List, Optional
 
-from .schema import FunctionCallError, function_call, json_schema
+from .functions import FunctionCallError, function_calls, json_schema
 
 try:
     from IPython.display import HTML, display
@@ -144,7 +144,7 @@ class FunctionCallingAPI:
                         fn_name = self.chat.last_message["function_call"]["name"]
                         args = self.chat.last_message["function_call"]["arguments"]
                         try:
-                            result = function_call(fn_name, args, self.functions)
+                            result = function_calls(fn_name, self.functions, args)
                             self.chat.add_message(Role.FUNCTION.value, result, name=fn_name)
                         except FunctionCallError as e:
                             self.chat.add_message(

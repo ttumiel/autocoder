@@ -3,7 +3,7 @@ import traceback
 from collections import defaultdict
 from typing import Callable, List, Optional, Set, Tuple
 
-from .schema import function_call
+from .functions import function_call
 
 try:
     from firebase_functions import https_fn, options
@@ -78,7 +78,7 @@ def request_handler(fn=None, allow_cors=True):
     def thunk(request: https_fn.Request):
         try:
             args = request.json if request.is_json else {}
-            result = function_call("fn", args, {"fn": fn}, validate=True, from_json=False)
+            result = function_call(fn, args, validate=True, from_json=False)
             return https_fn.Response(result, mimetype="application/json")
         except Exception as e:
             print(f"ERROR :: Function {fn.__name__} failed:\n", traceback.format_exc())

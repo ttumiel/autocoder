@@ -48,16 +48,14 @@ def test_quickstart():
 
 
 def test_function_calling():
-    def plusplus(x: float, y: float) -> float:
+    def addition(x: float, y: float) -> float:
         "Add two floats."
         return x + y
 
-    functions = {"plusplus": plusplus}
     arguments = json.dumps({"x": 1.0, "y": 2.0})
-    result = function_call("plusplus", arguments, functions)
+    result = function_call(addition, arguments)
     assert result == "3.0"
 
     with pytest.raises(FunctionCallError, match="Arguments do not match the schema."):
         arguments = json.dumps({"x": "a", "y": 2.0})
-        result = function_call("plusplus", arguments, functions)
-        # FunctionCallError: Function call failed. 1 validation error for plusplus
+        result = function_call(addition, arguments)

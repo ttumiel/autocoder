@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Sequence
 
 import pytest
 
-from chat2func import FunctionCallError, function_call, json_schema
+from chat2func import FunctionCallError, function_calls, json_schema
 from chat2func.schema import schema_to_type
 
 
@@ -106,12 +106,12 @@ def test_function_call_with_wrong_parameters(test_function, call_builder):
 
 def test_missing_function(test_function):
     with pytest.raises(FunctionCallError, match="Function `t` not found."):
-        function_call("t", json.dumps({"a": 1}), {"test": test_function})
+        function_calls("t", {"test": test_function}, json.dumps({"a": 1}))
 
 
 def test_invalid_json_function(test_function):
     with pytest.raises(FunctionCallError, match="Arguments are not valid JSON."):
-        function_call("test", '{"a: 1}', {"test": test_function})
+        function_calls("test", {"test": test_function}, '{"a: 1}')
 
 
 def test_function_error(test_function_4, call_builder):

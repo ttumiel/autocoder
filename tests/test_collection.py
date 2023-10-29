@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from chat2func.schema import collect_functions
+from chat2func import collect_functions
 
 
 def test_collect_function():

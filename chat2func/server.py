@@ -7,7 +7,7 @@ from functools import wraps
 from pathlib import Path
 from typing import Callable, Dict
 
-from .schema import function_call, json_schema
+from .functions import function_calls, json_schema
 
 try:
     import yaml
@@ -42,8 +42,8 @@ class FunctionServer:
         def wrapper():
             try:
                 args = request.json if request.method == "POST" and request.is_json else {}
-                result = function_call(
-                    route, args, self.functions, validate=validate, from_json=False
+                result = function_calls(
+                    route, self.functions, args, validate=validate, from_json=False
                 )
                 return Response(result, mimetype="application/json")
 
